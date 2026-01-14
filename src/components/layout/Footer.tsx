@@ -1,5 +1,23 @@
 import { motion } from 'framer-motion';
-import { Car, Twitter, Linkedin, Github, Mail } from 'lucide-react';
+import {
+  Car,
+  Compass,
+  CreditCard,
+  FileText,
+  HelpCircle,
+  Linkedin,
+  Mail,
+  Megaphone,
+  Newspaper,
+  Phone,
+  Shield,
+  Smartphone,
+  Sparkles,
+  Twitter,
+  Briefcase,
+  Github,
+  Info,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -15,22 +33,22 @@ export function Footer() {
 
   const footerLinks = {
     product: [
-      { label: t.footer.features, href: '/features' },
-      { label: t.footer.pricing, href: '/pricing' },
-      { label: language === 'fr' ? 'Emplacements' : 'Locations', href: '/discover' },
-      { label: language === 'fr' ? 'Application Mobile' : 'Mobile App', href: '/app' },
+      { label: t.footer.features, href: '/features', icon: Sparkles },
+      { label: t.footer.pricing, href: '/pricing', icon: CreditCard },
+      { label: language === 'fr' ? 'Emplacements' : 'Locations', href: '/discover', icon: Compass },
+      { label: language === 'fr' ? 'Application Mobile' : 'Mobile App', href: '/app', icon: Smartphone },
     ],
     company: [
-      { label: t.footer.about, href: '/about' },
-      { label: t.footer.careers, href: '/careers' },
-      { label: t.footer.blog, href: '/blog' },
-      { label: language === 'fr' ? 'Presse' : 'Press', href: '/press' },
+      { label: t.footer.about, href: '/about', icon: Info },
+      { label: t.footer.careers, href: '/careers', icon: Briefcase },
+      { label: t.footer.blog, href: '/blog', icon: Newspaper },
+      { label: language === 'fr' ? 'Presse' : 'Press', href: '/press', icon: Megaphone },
     ],
     support: [
-      { label: t.footer.helpCenter, href: '/help' },
-      { label: t.footer.contact, href: '/contact' },
-      { label: language === 'fr' ? 'Confidentialité' : 'Privacy Policy', href: '/privacy' },
-      { label: language === 'fr' ? 'Conditions' : 'Terms of Service', href: '/terms' },
+      { label: t.footer.helpCenter, href: '/help', icon: HelpCircle },
+      { label: t.footer.contact, href: '/contact', icon: Phone },
+      { label: language === 'fr' ? 'Confidentialité' : 'Privacy Policy', href: '/privacy', icon: Shield },
+      { label: language === 'fr' ? 'Conditions' : 'Terms of Service', href: '/terms', icon: FileText },
     ],
   };
 
@@ -89,7 +107,10 @@ export function Footer() {
                       to={link.href}
                       className="text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {link.label}
+                      <span className="inline-flex items-center gap-2">
+                        <link.icon className="h-4 w-4" />
+                        {link.label}
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -110,7 +131,10 @@ export function Footer() {
                       to={link.href}
                       className="text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {link.label}
+                      <span className="inline-flex items-center gap-2">
+                        <link.icon className="h-4 w-4" />
+                        {link.label}
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -131,7 +155,10 @@ export function Footer() {
                       to={link.href}
                       className="text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {link.label}
+                      <span className="inline-flex items-center gap-2">
+                        <link.icon className="h-4 w-4" />
+                        {link.label}
+                      </span>
                     </Link>
                   </li>
                 ))}

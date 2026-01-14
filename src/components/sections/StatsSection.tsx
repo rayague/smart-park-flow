@@ -1,3 +1,5 @@
+'use client';
+
 import { motion } from 'framer-motion';
 import { TrendingUp, Users, MapPin, Zap } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';

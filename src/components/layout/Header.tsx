@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Car, Menu, X } from 'lucide-react';
+import { Car, CircleDollarSign, Compass, Info, LogIn, Menu, Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
@@ -12,10 +12,10 @@ export function Header() {
   const { t } = useTranslation();
 
   const navLinks = [
-    { href: '/', label: t.nav.home },
-    { href: '/discover', label: t.nav.discover },
-    { href: '/pricing', label: t.nav.pricing },
-    { href: '/about', label: t.nav.about },
+    { href: '/', label: t.nav.home, icon: Car },
+    { href: '/discover', label: t.nav.discover, icon: Compass },
+    { href: '/pricing', label: t.nav.pricing, icon: CircleDollarSign },
+    { href: '/about', label: t.nav.about, icon: Info },
   ];
 
   return (
@@ -50,7 +50,10 @@ export function Header() {
                   to={link.href}
                   className="relative text-muted-foreground hover:text-foreground transition-colors font-medium group"
                 >
-                  {link.label}
+                  <span className="inline-flex items-center gap-2">
+                    <link.icon className="h-4 w-4" />
+                    {link.label}
+                  </span>
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 gradient-primary rounded-full transition-all duration-300 group-hover:w-full" />
                 </Link>
               ))}
@@ -60,11 +63,17 @@ export function Header() {
             <div className="hidden md:flex items-center gap-3">
               <LanguageToggle />
               <ThemeToggle />
-              <Button variant="ghost" className="font-medium">
-                {t.nav.signIn}
+              <Button asChild variant="ghost" className="font-medium">
+                <Link to="/login">
+                  <LogIn className="h-4 w-4" />
+                  {t.nav.signIn}
+                </Link>
               </Button>
-              <Button className="gradient-primary font-medium text-primary-foreground border-0">
-                {t.nav.getStarted}
+              <Button asChild className="gradient-primary font-medium text-primary-foreground border-0">
+                <Link to="/register">
+                  <Sparkles className="h-4 w-4" />
+                  {t.nav.getStarted}
+                </Link>
               </Button>
             </div>
 
@@ -92,17 +101,20 @@ export function Header() {
                   onClick={() => setIsOpen(false)}
                   className="block py-2 px-4 rounded-lg hover:bg-muted transition-colors"
                 >
-                  {link.label}
+                  <span className="inline-flex items-center gap-2">
+                    <link.icon className="h-4 w-4" />
+                    {link.label}
+                  </span>
                 </Link>
               ))}
               <div className="pt-4 flex items-center gap-3">
                 <LanguageToggle />
                 <ThemeToggle />
-                <Button variant="ghost" className="flex-1">
-                  {t.nav.signIn}
+                <Button asChild variant="ghost" className="flex-1">
+                  <Link to="/login">{t.nav.signIn}</Link>
                 </Button>
-                <Button className="flex-1 gradient-primary text-primary-foreground border-0">
-                  {t.nav.getStarted}
+                <Button asChild className="flex-1 gradient-primary text-primary-foreground border-0">
+                  <Link to="/register">{t.nav.getStarted}</Link>
                 </Button>
               </div>
             </div>

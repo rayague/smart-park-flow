@@ -1,26 +1,19 @@
+'use client';
+
 import { motion } from 'framer-motion';
-import { Suspense, lazy } from 'react';
 import { Search, ArrowRight, Play, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Typewriter } from '@/components/animations/Typewriter';
 import { useTranslation } from '@/hooks/useTranslation';
-
-// Lazy load the 3D scene to not block UI
-const Scene3D = lazy(() => import('@/components/three/Scene3D'));
 
 export function HeroSection() {
   const { t } = useTranslation();
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
-      {/* 3D Background */}
-      <Suspense fallback={null}>
-        <Scene3D />
-      </Suspense>
-
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/40 to-background pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-background pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/40 to-background dark:from-transparent dark:via-background/20 dark:to-background pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-background/60 dark:to-transparent pointer-events-none" />
 
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10">
@@ -44,9 +37,13 @@ export function HeroSection() {
             className="font-display text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight"
           >
             <span className="block">{t.hero.title}</span>
-            <span className="gradient-text">
-              <Typewriter texts={[...t.hero.typingPhrases]} speed={80} deleteSpeed={40} pauseDuration={2500} />
-            </span>
+            <Typewriter
+              className="gradient-text"
+              texts={[...t.hero.typingPhrases]}
+              speed={80}
+              deleteSpeed={40}
+              pauseDuration={2500}
+            />
           </motion.h1>
 
           {/* Subtitle */}

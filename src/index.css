@@ -61,13 +61,13 @@
 
   .dark {
     /* SmartPark Design System - Dark Theme */
-    --background: 222 47% 6%;
+    --background: 222 47% 11%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 9%;
+    --card: 215 28% 17%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 9%;
+    --popover: 215 28% 17%;
     --popover-foreground: 210 40% 98%;
 
     /* Tech Blue Primary */
@@ -79,7 +79,7 @@
     --secondary-foreground: 222 47% 6%;
 
     --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted-foreground: 215 20% 70%;
 
     /* Accent - Bright Blue */
     --accent: 217 91% 60%;
@@ -113,12 +113,7 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
-    @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
   }
 
@@ -130,11 +125,15 @@
 @layer components {
   /* Glassmorphism */
   .glass {
-    @apply bg-card/70 backdrop-blur-xl border border-border/50;
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--border) / 0.5);
   }
 
   .glass-strong {
-    @apply bg-card/90 backdrop-blur-2xl border border-border/30;
+    background: hsl(var(--card) / 0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.3);
   }
 
   /* Gradient backgrounds */
@@ -147,8 +146,12 @@
   }
 
   .gradient-text {
-    @apply bg-clip-text text-transparent;
+    display: inline-block;
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
   }
 
   /* Glow effects */
