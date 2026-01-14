@@ -8,45 +8,7 @@ import {
   Leaf,
   ArrowRight 
 } from 'lucide-react';
-
-const features = [
-  {
-    icon: MapPin,
-    title: 'Real-Time Availability',
-    description: 'Find available parking spots instantly with live updates across thousands of locations.',
-    color: 'primary',
-  },
-  {
-    icon: Zap,
-    title: 'EV Charging Stations',
-    description: 'Locate and reserve EV charging points with smart energy management.',
-    color: 'secondary',
-  },
-  {
-    icon: Shield,
-    title: 'Secure Parking',
-    description: '24/7 surveillance and access control for complete peace of mind.',
-    color: 'primary',
-  },
-  {
-    icon: Clock,
-    title: 'Save Time',
-    description: 'Skip the search. Pre-book your spot and drive directly to your destination.',
-    color: 'secondary',
-  },
-  {
-    icon: CreditCard,
-    title: 'Seamless Payments',
-    description: 'Contactless payments with transparent pricing. No hidden fees.',
-    color: 'primary',
-  },
-  {
-    icon: Leaf,
-    title: 'Eco-Friendly',
-    description: 'Reduce emissions by finding parking faster. Track your CO2 savings.',
-    color: 'secondary',
-  },
-];
+import { useTranslation } from '@/hooks/useTranslation';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -68,6 +30,47 @@ const itemVariants = {
 };
 
 export function FeaturesSection() {
+  const { t, language } = useTranslation();
+
+  const features = [
+    {
+      icon: MapPin,
+      title: t.features.realTime,
+      description: t.features.realTimeDesc,
+      color: 'primary',
+    },
+    {
+      icon: Zap,
+      title: t.features.evCharging,
+      description: t.features.evChargingDesc,
+      color: 'secondary',
+    },
+    {
+      icon: Shield,
+      title: t.features.smartBooking,
+      description: t.features.smartBookingDesc,
+      color: 'primary',
+    },
+    {
+      icon: Clock,
+      title: t.features.securePayment,
+      description: t.features.securePaymentDesc,
+      color: 'secondary',
+    },
+    {
+      icon: CreditCard,
+      title: t.features.analytics,
+      description: t.features.analyticsDesc,
+      color: 'primary',
+    },
+    {
+      icon: Leaf,
+      title: t.features.mobileApp,
+      description: t.features.mobileAppDesc,
+      color: 'secondary',
+    },
+  ];
+
   return (
     <section className="py-24 px-4 relative overflow-hidden">
       {/* Background gradient */}
@@ -82,14 +85,16 @@ export function FeaturesSection() {
           className="text-center mb-16"
         >
           <span className="inline-block px-4 py-2 rounded-full glass text-sm font-medium text-primary mb-4">
-            Features
+            {t.features.badge}
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            Everything you need for{' '}
-            <span className="gradient-text">smart parking</span>
+            {t.features.title}{' '}
+            <span className="gradient-text">{t.features.titleHighlight}</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            From finding a spot to charging your EV, we've got you covered with cutting-edge technology.
+            {language === 'fr' 
+              ? 'De la recherche de place à la recharge de votre VE, nous vous accompagnons avec des technologies de pointe.'
+              : 'From finding a spot to charging your EV, we\'ve got you covered with cutting-edge technology.'}
           </p>
         </motion.div>
 
@@ -121,7 +126,7 @@ export function FeaturesSection() {
                   {feature.description}
                 </p>
                 <div className="flex items-center text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                  Learn more
+                  {language === 'fr' ? 'En savoir plus' : 'Learn more'}
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>

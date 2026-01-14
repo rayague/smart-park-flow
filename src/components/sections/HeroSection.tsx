@@ -3,18 +3,14 @@ import { Suspense, lazy } from 'react';
 import { Search, ArrowRight, Play, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Typewriter } from '@/components/animations/Typewriter';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // Lazy load the 3D scene to not block UI
 const Scene3D = lazy(() => import('@/components/three/Scene3D'));
 
-const heroTexts = [
-  'Smart Parking Solutions',
-  'Charge Your EV',
-  'Book Instantly',
-  'Save Time & Money',
-];
-
 export function HeroSection() {
+  const { t } = useTranslation();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
       {/* 3D Background */}
@@ -37,7 +33,7 @@ export function HeroSection() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8"
           >
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">AI-Powered Parking Intelligence</span>
+            <span className="text-sm font-medium">{t.hero.badge}</span>
           </motion.div>
 
           {/* Main Heading */}
@@ -47,9 +43,9 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="font-display text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight"
           >
-            <span className="block">The Future of</span>
+            <span className="block">{t.hero.title}</span>
             <span className="gradient-text">
-              <Typewriter texts={heroTexts} speed={80} deleteSpeed={40} pauseDuration={2500} />
+              <Typewriter texts={[...t.hero.typingPhrases]} speed={80} deleteSpeed={40} pauseDuration={2500} />
             </span>
           </motion.h1>
 
@@ -60,8 +56,7 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
           >
-            Find, book, and pay for parking in seconds. Real-time availability, 
-            EV charging, and seamless payments - all in one platform.
+            {t.hero.description}
           </motion.p>
 
           {/* Search Bar */}
@@ -76,12 +71,12 @@ export function HeroSection() {
                 <Search className="h-5 w-5 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search by address, city, or landmark..."
+                  placeholder={t.hero.searchPlaceholder}
                   className="flex-1 bg-transparent border-none outline-none placeholder:text-muted-foreground"
                 />
               </div>
               <Button size="lg" className="gradient-primary text-primary-foreground border-0 px-8">
-                Find Parking
+                {t.hero.search}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
@@ -96,11 +91,11 @@ export function HeroSection() {
           >
             <Button variant="ghost" size="lg" className="gap-2">
               <Play className="h-5 w-5" />
-              Watch Demo
+              {t.hero.trustedBy.includes('50') ? 'Watch Demo' : 'Voir la Démo'}
             </Button>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
-              50K+ spots available now
+              {t.hero.trustedBy}
             </div>
           </motion.div>
         </div>

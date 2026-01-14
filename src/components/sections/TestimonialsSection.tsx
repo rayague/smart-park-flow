@@ -1,34 +1,66 @@
 import { motion } from 'framer-motion';
 import { Star, Quote } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
-const testimonials = [
-  {
-    id: 1,
-    name: 'Sarah Johnson',
-    role: 'Daily Commuter',
-    avatar: 'SJ',
-    content: 'SmartPark has completely changed how I approach parking. I save at least 20 minutes every day not circling around looking for spots.',
-    rating: 5,
-  },
-  {
-    id: 2,
-    name: 'Michael Chen',
-    role: 'EV Owner',
-    avatar: 'MC',
-    content: 'The EV charging integration is seamless. I can find charging spots, book them in advance, and never worry about running out of battery.',
-    rating: 5,
-  },
-  {
-    id: 3,
-    name: 'Emily Rodriguez',
-    role: 'Business Owner',
-    avatar: 'ER',
-    content: 'Managing our fleet parking has never been easier. The analytics and expense tracking features are invaluable for our business.',
-    rating: 5,
-  },
-];
+const testimonials = {
+  en: [
+    {
+      id: 1,
+      name: 'Sarah Johnson',
+      role: 'Daily Commuter',
+      avatar: 'SJ',
+      content: 'SmartPark has completely changed how I approach parking. I save at least 20 minutes every day not circling around looking for spots.',
+      rating: 5,
+    },
+    {
+      id: 2,
+      name: 'Michael Chen',
+      role: 'EV Owner',
+      avatar: 'MC',
+      content: 'The EV charging integration is seamless. I can find charging spots, book them in advance, and never worry about running out of battery.',
+      rating: 5,
+    },
+    {
+      id: 3,
+      name: 'Emily Rodriguez',
+      role: 'Business Owner',
+      avatar: 'ER',
+      content: 'Managing our fleet parking has never been easier. The analytics and expense tracking features are invaluable for our business.',
+      rating: 5,
+    },
+  ],
+  fr: [
+    {
+      id: 1,
+      name: 'Marie Dupont',
+      role: 'Navetteur Quotidien',
+      avatar: 'MD',
+      content: 'SmartPark a complètement changé ma façon de me garer. J\'économise au moins 20 minutes par jour à ne plus chercher de place.',
+      rating: 5,
+    },
+    {
+      id: 2,
+      name: 'Pierre Martin',
+      role: 'Propriétaire VE',
+      avatar: 'PM',
+      content: 'L\'intégration de la recharge VE est parfaite. Je trouve des bornes, je réserve à l\'avance, et je ne m\'inquiète plus jamais de la batterie.',
+      rating: 5,
+    },
+    {
+      id: 3,
+      name: 'Sophie Bernard',
+      role: 'Chef d\'Entreprise',
+      avatar: 'SB',
+      content: 'Gérer le stationnement de notre flotte n\'a jamais été aussi simple. Les analyses et le suivi des dépenses sont inestimables.',
+      rating: 5,
+    },
+  ],
+};
 
 export function TestimonialsSection() {
+  const { t, language } = useTranslation();
+  const currentTestimonials = testimonials[language];
+
   return (
     <section className="py-24 px-4 relative overflow-hidden bg-muted/30">
       <div className="container mx-auto">
@@ -40,19 +72,21 @@ export function TestimonialsSection() {
           className="text-center mb-16"
         >
           <span className="inline-block px-4 py-2 rounded-full glass text-sm font-medium text-primary mb-4">
-            Testimonials
+            {t.testimonials.badge}
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            Loved by{' '}
-            <span className="gradient-text">drivers everywhere</span>
+            {t.testimonials.title}{' '}
+            <span className="gradient-text">{t.testimonials.titleHighlight}</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Join thousands of satisfied users who've transformed their parking experience.
+            {language === 'fr' 
+              ? 'Rejoignez des milliers d\'utilisateurs satisfaits qui ont transformé leur expérience de stationnement.'
+              : 'Join thousands of satisfied users who\'ve transformed their parking experience.'}
           </p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {testimonials.map((testimonial, index) => (
+          {currentTestimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
               initial={{ opacity: 0, y: 20 }}

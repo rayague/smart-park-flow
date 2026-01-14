@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
     email: '',
     password: '',
   });
+  const { t } = useTranslation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,12 +66,12 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                 {/* Header */}
                 <div className="text-center mb-8">
                   <h2 className="font-display text-2xl font-bold mb-2">
-                    {mode === 'login' ? 'Welcome back' : 'Create account'}
+                    {mode === 'login' ? t.auth.welcome : t.auth.createAccount}
                   </h2>
                   <p className="text-muted-foreground text-sm">
                     {mode === 'login'
-                      ? 'Sign in to continue to SmartPark'
-                      : 'Start your smart parking journey'}
+                      ? t.auth.welcomeDesc
+                      : t.auth.createAccountDesc}
                   </p>
                 </div>
 
@@ -80,7 +82,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <input
                         type="text"
-                        placeholder="Full name"
+                        placeholder={t.auth.fullNamePlaceholder}
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
@@ -92,7 +94,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <input
                       type="email"
-                      placeholder="Email address"
+                      placeholder={t.auth.emailPlaceholder}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
@@ -103,7 +105,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Password"
+                      placeholder={t.auth.passwordPlaceholder}
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className="w-full pl-12 pr-12 py-3 rounded-xl bg-muted/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
@@ -120,13 +122,13 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                   {mode === 'login' && (
                     <div className="text-right">
                       <button type="button" className="text-sm text-primary hover:underline">
-                        Forgot password?
+                        {t.auth.forgotPassword}
                       </button>
                     </div>
                   )}
 
                   <Button type="submit" size="lg" className="w-full gradient-primary text-primary-foreground border-0">
-                    {mode === 'login' ? 'Sign In' : 'Create Account'}
+                    {mode === 'login' ? t.auth.signIn : t.auth.signUp}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </form>
@@ -137,7 +139,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     <div className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-card text-muted-foreground">or continue with</span>
+                    <span className="px-4 bg-card text-muted-foreground">{t.auth.orContinue}</span>
                   </div>
                 </div>
 
@@ -175,14 +177,14 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                 {/* Toggle mode */}
                 <div className="text-center mt-6">
                   <span className="text-muted-foreground text-sm">
-                    {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+                    {mode === 'login' ? t.auth.noAccount : t.auth.hasAccount}
                   </span>
                   <button
                     type="button"
                     onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-                    className="text-sm font-medium text-primary hover:underline"
+                    className="text-sm font-medium text-primary hover:underline ml-1"
                   >
-                    {mode === 'login' ? 'Sign up' : 'Sign in'}
+                    {mode === 'login' ? t.auth.signUpLink : t.auth.signInLink}
                   </button>
                 </div>
               </div>
