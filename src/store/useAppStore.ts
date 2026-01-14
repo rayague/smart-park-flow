@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type Theme = 'light' | 'dark';
+export type Language = 'en' | 'fr';
 export type UserRole = 'user' | 'manager' | 'admin';
 
 interface User {
@@ -14,6 +15,7 @@ interface User {
 
 interface AppState {
   theme: Theme;
+  language: Language;
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -21,6 +23,7 @@ interface AppState {
   // Actions
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  setLanguage: (language: Language) => void;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
@@ -30,6 +33,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       theme: 'dark',
+      language: 'fr',
       user: null,
       isAuthenticated: false,
       isLoading: false,
@@ -46,6 +50,8 @@ export const useAppStore = create<AppState>()(
         get().setTheme(newTheme);
       },
 
+      setLanguage: (language) => set({ language }),
+
       setUser: (user) => {
         set({ user, isAuthenticated: !!user });
       },
@@ -58,7 +64,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'smartpark-storage',
-      partialize: (state) => ({ theme: state.theme }),
+      partialize: (state) => ({ theme: state.theme, language: state.language }),
     }
   )
 );

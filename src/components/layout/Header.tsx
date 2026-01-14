@@ -3,17 +3,20 @@ import { motion } from 'framer-motion';
 import { Car, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { Button } from '@/components/ui/button';
-
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/discover', label: 'Discover' },
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/about', label: 'About' },
-];
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
+
+  const navLinks = [
+    { href: '/', label: t.nav.home },
+    { href: '/discover', label: t.nav.discover },
+    { href: '/pricing', label: t.nav.pricing },
+    { href: '/about', label: t.nav.about },
+  ];
 
   return (
     <motion.header
@@ -55,12 +58,13 @@ export function Header() {
 
             {/* Actions */}
             <div className="hidden md:flex items-center gap-3">
+              <LanguageToggle />
               <ThemeToggle />
               <Button variant="ghost" className="font-medium">
-                Sign In
+                {t.nav.signIn}
               </Button>
               <Button className="gradient-primary font-medium text-primary-foreground border-0">
-                Get Started
+                {t.nav.getStarted}
               </Button>
             </div>
 
@@ -92,12 +96,13 @@ export function Header() {
                 </Link>
               ))}
               <div className="pt-4 flex items-center gap-3">
+                <LanguageToggle />
                 <ThemeToggle />
                 <Button variant="ghost" className="flex-1">
-                  Sign In
+                  {t.nav.signIn}
                 </Button>
                 <Button className="flex-1 gradient-primary text-primary-foreground border-0">
-                  Get Started
+                  {t.nav.getStarted}
                 </Button>
               </div>
             </div>

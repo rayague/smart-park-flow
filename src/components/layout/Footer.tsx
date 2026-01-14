@@ -1,27 +1,7 @@
 import { motion } from 'framer-motion';
 import { Car, Twitter, Linkedin, Github, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const footerLinks = {
-  product: [
-    { label: 'Features', href: '/features' },
-    { label: 'Pricing', href: '/pricing' },
-    { label: 'Locations', href: '/discover' },
-    { label: 'Mobile App', href: '/app' },
-  ],
-  company: [
-    { label: 'About Us', href: '/about' },
-    { label: 'Careers', href: '/careers' },
-    { label: 'Blog', href: '/blog' },
-    { label: 'Press', href: '/press' },
-  ],
-  support: [
-    { label: 'Help Center', href: '/help' },
-    { label: 'Contact', href: '/contact' },
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
-  ],
-};
+import { useTranslation } from '@/hooks/useTranslation';
 
 const socialLinks = [
   { icon: Twitter, href: '#', label: 'Twitter' },
@@ -31,6 +11,29 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const { t, language } = useTranslation();
+
+  const footerLinks = {
+    product: [
+      { label: t.footer.features, href: '/features' },
+      { label: t.footer.pricing, href: '/pricing' },
+      { label: language === 'fr' ? 'Emplacements' : 'Locations', href: '/discover' },
+      { label: language === 'fr' ? 'Application Mobile' : 'Mobile App', href: '/app' },
+    ],
+    company: [
+      { label: t.footer.about, href: '/about' },
+      { label: t.footer.careers, href: '/careers' },
+      { label: t.footer.blog, href: '/blog' },
+      { label: language === 'fr' ? 'Presse' : 'Press', href: '/press' },
+    ],
+    support: [
+      { label: t.footer.helpCenter, href: '/help' },
+      { label: t.footer.contact, href: '/contact' },
+      { label: language === 'fr' ? 'Confidentialité' : 'Privacy Policy', href: '/privacy' },
+      { label: language === 'fr' ? 'Conditions' : 'Terms of Service', href: '/terms' },
+    ],
+  };
+
   return (
     <footer className="relative overflow-hidden">
       {/* Gradient top border */}
@@ -53,7 +56,7 @@ export function Footer() {
                 <span className="font-display text-xl font-bold">SmartPark</span>
               </Link>
               <p className="text-muted-foreground mb-6 max-w-sm">
-                The future of urban parking. Find, book, and pay for parking in seconds with our intelligent platform.
+                {t.footer.description}
               </p>
               <div className="flex gap-3">
                 {socialLinks.map((social) => (
@@ -78,7 +81,7 @@ export function Footer() {
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
-              <h4 className="font-display font-semibold mb-4">Product</h4>
+              <h4 className="font-display font-semibold mb-4">{t.footer.product}</h4>
               <ul className="space-y-3">
                 {footerLinks.product.map((link) => (
                   <li key={link.label}>
@@ -99,7 +102,7 @@ export function Footer() {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              <h4 className="font-display font-semibold mb-4">Company</h4>
+              <h4 className="font-display font-semibold mb-4">{t.footer.company}</h4>
               <ul className="space-y-3">
                 {footerLinks.company.map((link) => (
                   <li key={link.label}>
@@ -120,7 +123,7 @@ export function Footer() {
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
             >
-              <h4 className="font-display font-semibold mb-4">Support</h4>
+              <h4 className="font-display font-semibold mb-4">{t.footer.support}</h4>
               <ul className="space-y-3">
                 {footerLinks.support.map((link) => (
                   <li key={link.label}>
@@ -139,11 +142,13 @@ export function Footer() {
           {/* Bottom */}
           <div className="mt-16 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-muted-foreground text-sm">
-              © 2024 SmartPark. All rights reserved.
+              © 2024 SmartPark. {t.footer.rights}
             </p>
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
-              <span className="text-sm text-muted-foreground">All systems operational</span>
+              <span className="text-sm text-muted-foreground">
+                {language === 'fr' ? 'Tous les systèmes opérationnels' : 'All systems operational'}
+              </span>
             </div>
           </div>
         </div>

@@ -1,34 +1,37 @@
 import { motion } from 'framer-motion';
 import { TrendingUp, Users, MapPin, Zap } from 'lucide-react';
-
-const stats = [
-  { 
-    icon: MapPin, 
-    value: '50K+', 
-    label: 'Parking Spots', 
-    suffix: '' 
-  },
-  { 
-    icon: Users, 
-    value: '2M+', 
-    label: 'Happy Users', 
-    suffix: '' 
-  },
-  { 
-    icon: TrendingUp, 
-    value: '98', 
-    label: 'Satisfaction Rate', 
-    suffix: '%' 
-  },
-  { 
-    icon: Zap, 
-    value: '10K+', 
-    label: 'EV Chargers', 
-    suffix: '' 
-  },
-];
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function StatsSection() {
+  const { t, language } = useTranslation();
+
+  const stats = [
+    { 
+      icon: MapPin, 
+      value: '50K+', 
+      label: t.stats.parkingSpots, 
+      suffix: '' 
+    },
+    { 
+      icon: Users, 
+      value: '2M+', 
+      label: t.stats.happyUsers, 
+      suffix: '' 
+    },
+    { 
+      icon: TrendingUp, 
+      value: '98', 
+      label: language === 'fr' ? 'Taux de Satisfaction' : 'Satisfaction Rate', 
+      suffix: '%' 
+    },
+    { 
+      icon: Zap, 
+      value: '10K+', 
+      label: language === 'fr' ? 'Bornes de Recharge' : 'EV Chargers', 
+      suffix: '' 
+    },
+  ];
+
   return (
     <section className="py-20 px-4">
       <div className="container mx-auto">

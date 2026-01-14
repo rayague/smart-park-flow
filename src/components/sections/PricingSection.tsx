@@ -1,57 +1,41 @@
 import { motion } from 'framer-motion';
 import { Check, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const plans = [
-  {
-    name: 'Basic',
-    description: 'Perfect for occasional parkers',
-    price: 'Free',
-    period: '',
-    features: [
-      'Find parking spots',
-      'Basic navigation',
-      'Pay-as-you-go',
-      'Email support',
-    ],
-    cta: 'Get Started',
-    popular: false,
-  },
-  {
-    name: 'Pro',
-    description: 'For daily commuters',
-    price: '$9.99',
-    period: '/month',
-    features: [
-      'Everything in Basic',
-      'Priority reservations',
-      'EV charging access',
-      'Save favorite spots',
-      'CO2 tracking',
-      '24/7 priority support',
-    ],
-    cta: 'Start Free Trial',
-    popular: true,
-  },
-  {
-    name: 'Business',
-    description: 'For fleet management',
-    price: '$49.99',
-    period: '/month',
-    features: [
-      'Everything in Pro',
-      'Unlimited team members',
-      'Fleet analytics',
-      'Expense reports',
-      'API access',
-      'Dedicated account manager',
-    ],
-    cta: 'Contact Sales',
-    popular: false,
-  },
-];
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function PricingSection() {
+  const { t, language } = useTranslation();
+
+  const plans = [
+    {
+      name: t.pricing.plans.basic.name,
+      description: t.pricing.plans.basic.description,
+      price: language === 'fr' ? 'Gratuit' : 'Free',
+      period: '',
+      features: t.pricing.plans.basic.features,
+      cta: t.pricing.getStarted,
+      popular: false,
+    },
+    {
+      name: t.pricing.plans.pro.name,
+      description: t.pricing.plans.pro.description,
+      price: '9,99€',
+      period: t.pricing.perMonth,
+      features: t.pricing.plans.pro.features,
+      cta: language === 'fr' ? 'Essai Gratuit' : 'Start Free Trial',
+      popular: true,
+    },
+    {
+      name: t.pricing.plans.enterprise.name,
+      description: t.pricing.plans.enterprise.description,
+      price: '49,99€',
+      period: t.pricing.perMonth,
+      features: t.pricing.plans.enterprise.features,
+      cta: t.pricing.contactSales,
+      popular: false,
+    },
+  ];
+
   return (
     <section className="py-24 px-4 relative">
       <div className="container mx-auto">
@@ -63,14 +47,16 @@ export function PricingSection() {
           className="text-center mb-16"
         >
           <span className="inline-block px-4 py-2 rounded-full glass text-sm font-medium text-primary mb-4">
-            Pricing
+            {t.pricing.badge}
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            Simple, transparent{' '}
-            <span className="gradient-text">pricing</span>
+            {t.pricing.title}{' '}
+            <span className="gradient-text">{t.pricing.titleHighlight}</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Choose the plan that fits your parking needs. No hidden fees, cancel anytime.
+            {language === 'fr' 
+              ? 'Choisissez le plan adapté à vos besoins. Sans frais cachés, annulez quand vous voulez.'
+              : 'Choose the plan that fits your parking needs. No hidden fees, cancel anytime.'}
           </p>
         </motion.div>
 
@@ -92,7 +78,7 @@ export function PricingSection() {
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                   <span className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full gradient-primary text-primary-foreground text-sm font-medium">
                     <Zap className="h-4 w-4" />
-                    Most Popular
+                    {t.pricing.popular}
                   </span>
                 </div>
               )}
