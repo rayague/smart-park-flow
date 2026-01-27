@@ -2,92 +2,39 @@
 
 import { motion } from 'framer-motion';
 import { MapPin, Zap, Star, ArrowRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from '@/hooks/useTranslation';
+import { fetchJson } from '@/lib/api';
 
-const parkingImages = [
-  {
-    id: 1,
-    nameEn: 'Modern Underground Garage',
-    nameFr: 'Garage Souterrain Moderne',
-    locationEn: 'Downtown Financial District',
-    locationFr: 'Quartier Financier Centre-Ville',
-    image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=800&auto=format&fit=crop&q=80',
-    rating: 4.8,
-    priceEn: '$3.50/hr',
-    priceFr: '3,50€/h',
-    hasEV: true,
-    available: 34,
-  },
-  {
-    id: 2,
-    nameEn: 'EV Charging Hub',
-    nameFr: 'Centre de Recharge VE',
-    locationEn: 'Tech Campus',
-    locationFr: 'Campus Technologique',
-    image: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800&auto=format&fit=crop&q=80',
-    rating: 4.9,
-    priceEn: '$4.00/hr',
-    priceFr: '4,00€/h',
-    hasEV: true,
-    available: 12,
-  },
-  {
-    id: 3,
-    nameEn: 'Sunset Mall Parking',
-    nameFr: 'Parking Centre Commercial',
-    locationEn: 'Shopping District',
-    locationFr: 'Quartier Commercial',
-    image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=800&auto=format&fit=crop&q=80',
-    rating: 4.6,
-    priceEn: '$2.50/hr',
-    priceFr: '2,50€/h',
-    hasEV: false,
-    available: 89,
-  },
-  {
-    id: 4,
-    nameEn: 'Airport Express Lot',
-    nameFr: 'Parking Express Aéroport',
-    locationEn: 'International Airport',
-    locationFr: 'Aéroport International',
-    image: 'https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?w=800&auto=format&fit=crop&q=80',
-    rating: 4.7,
-    priceEn: '$5.00/hr',
-    priceFr: '5,00€/h',
-    hasEV: true,
-    available: 156,
-  },
-  {
-    id: 5,
-    nameEn: 'City Center Garage',
-    nameFr: 'Garage Centre-Ville',
-    locationEn: 'Central Business Area',
-    locationFr: 'Zone d\'Affaires Centrale',
-    image: 'https://images.unsplash.com/photo-1470224114660-3f6686c562eb?w=800&auto=format&fit=crop&q=80',
-    rating: 4.5,
-    priceEn: '$3.00/hr',
-    priceFr: '3,00€/h',
-    hasEV: true,
-    available: 45,
-  },
-  {
-    id: 6,
-    nameEn: 'Waterfront Parking',
-    nameFr: 'Parking Front de Mer',
-    locationEn: 'Harbor District',
-    locationFr: 'Quartier du Port',
-    image: 'https://images.unsplash.com/photo-1621929747188-0b4dc28498d2?w=800&auto=format&fit=crop&q=80',
-    rating: 4.4,
-    priceEn: '$2.00/hr',
-    priceFr: '2,00€/h',
-    hasEV: false,
-    available: 23,
-  },
-];
+type ParkingItem = {
+  id: string;
+  nameEn: string;
+  nameFr: string;
+  locationEn: string;
+  locationFr: string;
+  image: string;
+  rating: number;
+  priceEn: string;
+  priceFr: string;
+  hasEV: boolean;
+  available: number;
+};
+
+type ParkingsResponse = {
+  items: ParkingItem[];
+};
 
 export function ParkingGallery() {
   const { t, language } = useTranslation();
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['parkings'],
+    queryFn: () => fetchJson<ParkingsResponse>('/api/parkings'),
+  });
+
+  const parkings = data?.items ?? [];
 
   return (
     <section className="py-24 px-4 relative overflow-hidden">
@@ -114,7 +61,31 @@ export function ParkingGallery() {
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {parkingImages.map((parking, index) => (
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.05 }}
+                  className="group relative rounded-2xl overflow-hidden card-hover"
+                >
+                  <div className="aspect-[4/3] overflow-hidden">
+                    <Skeleton className="w-full h-full rounded-none" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent opacity-80" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
+                    <Skeleton className="h-5 w-2/3" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <div className="flex items-center justify-between pt-2">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-9 w-28" />
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            : parkings.map((parking, index) => (
             <motion.div
               key={parking.id}
               initial={{ opacity: 0, y: 20 }}
@@ -178,6 +149,14 @@ export function ParkingGallery() {
             </motion.div>
           ))}
         </div>
+
+        {isError && (
+          <div className="text-center mt-8 text-sm text-muted-foreground">
+            {language === 'fr'
+              ? 'Impossible de charger les parkings pour le moment.'
+              : 'Unable to load parkings right now.'}
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

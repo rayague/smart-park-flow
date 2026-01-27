@@ -1,6 +1,37 @@
+'use client';
+
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+
+import { Skeleton } from '@/components/ui/skeleton';
+import { fetchJson } from '@/lib/api';
+
+type ParkingItem = {
+  id: string;
+  nameEn: string;
+  nameFr: string;
+  locationEn: string;
+  locationFr: string;
+  image: string;
+  rating: number;
+  priceEn: string;
+  priceFr: string;
+  hasEV: boolean;
+  available: number;
+};
+
+type ParkingsResponse = {
+  items: ParkingItem[];
+};
 
 export default function ParkingsPage() {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['parkings'],
+    queryFn: () => fetchJson<ParkingsResponse>('/api/parkings'),
+  });
+
+  const parkings = data?.items ?? [];
+
   return (
     <main className="pt-28 pb-16">
       <div className="container mx-auto px-4">
@@ -16,19 +47,28 @@ export default function ParkingsPage() {
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          <div className="rounded-2xl glass p-6">
-            <div className="font-display text-xl font-bold mb-2">Centre-ville</div>
-            <div className="text-muted-foreground">42 places disponibles • EV ready</div>
-          </div>
-          <div className="rounded-2xl glass p-6">
-            <div className="font-display text-xl font-bold mb-2">Aéroport</div>
-            <div className="text-muted-foreground">16 places disponibles • Longue durée</div>
-          </div>
-          <div className="rounded-2xl glass p-6">
-            <div className="font-display text-xl font-bold mb-2">Tech Hub</div>
-            <div className="text-muted-foreground">73 places disponibles • Accès rapide</div>
-          </div>
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, idx) => (
+                <div key={idx} className="rounded-2xl glass p-6 space-y-3">
+                  <Skeleton className="h-6 w-2/3" />
+                  <Skeleton className="h-4 w-4/5" />
+                </div>
+              ))
+            : parkings.slice(0, 3).map((parking) => (
+                <div key={parking.id} className="rounded-2xl glass p-6">
+                  <div className="font-display text-xl font-bold mb-2">{parking.nameFr}</div>
+                  <div className="text-muted-foreground">
+                    {parking.available} places disponibles • {parking.hasEV ? 'EV ready' : 'Sans recharge'}
+                  </div>
+                </div>
+              ))}
         </div>
+
+        {isError && (
+          <div className="mt-6 text-sm text-muted-foreground">
+            Impossible de charger la liste des parkings pour le moment.
+          </div>
+        )}
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
           <Link

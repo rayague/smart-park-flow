@@ -2,18 +2,68 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { fetchJson } from '@/lib/api';
+import { useAppStore } from '@/store/useAppStore';
+
+type LoginResponse = {
+  token: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: 'user' | 'client' | 'admin';
+  };
+};
 
 export default function LoginPage() {
+  const router = useRouter();
+  const setUser = useAppStore((s) => s.setUser);
+
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const data = await fetchJson<LoginResponse>('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      window.localStorage.setItem('smartpark-token', data.token);
+      setUser({
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+      });
+
+      const targetBase =
+        data.user.role === 'admin'
+          ? '/admin/dashboard'
+          : data.user.role === 'client'
+            ? '/client/dashboard'
+            : '/user/dashboard';
+
+      router.push(targetBase);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Login failed';
+      setError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -78,10 +128,17 @@ export default function LoginPage() {
                   </button>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full gradient-primary text-primary-foreground border-0">
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full gradient-primary text-primary-foreground border-0"
+                  disabled={isSubmitting}
+                >
                   Se connecter
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
+
+                {error && <div className="text-sm text-muted-foreground">{error}</div>}
 
                 <div className="text-center text-sm text-muted-foreground">
                   Pas de compte ?{' '}

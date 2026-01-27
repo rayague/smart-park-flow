@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export type Theme = 'light' | 'dark';
 export type Language = 'en' | 'fr';
-export type UserRole = 'user' | 'manager' | 'admin';
+export type UserRole = 'user' | 'client' | 'admin';
 
 interface User {
   id: string;

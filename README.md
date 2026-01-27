@@ -51,9 +51,53 @@ The dev server runs on: `http://localhost:8080`
 ## Scripts
 
 - `npm run dev`: start Next dev server (port 8080)
+- `npm run api`: start Express API server (port 4000)
+- `npm run api:dev`: start Express API server with Node watch mode (port 4000)
 - `npm run build`: production build
 - `npm run start`: start production server (port 8080)
 - `npm run lint`: run ESLint
+
+## Backend (Express API)
+
+This repository includes a minimal Express.js API (isolated from the Next.js frontend).
+
+### Start the API
+
+```bash
+npm install
+npm run api
+```
+
+Dev mode (Node.js 20+):
+
+```bash
+npm run api:dev
+```
+
+### Environment variables
+
+- `PORT` (default: `4000`)
+- `CORS_ORIGIN` (default: `http://localhost:8080`)
+
+Frontend (Next.js):
+
+- `NEXT_PUBLIC_API_BASE_URL` (default: `http://localhost:4000`) - base URL used by the frontend to call the Express API
+
+### Available endpoints (MVP)
+
+- `GET /api/health` -> `{ "status": "ok" }`
+- `GET /api/parkings` -> `{ items: [...] }`
+- `GET /api/parkings/:id` -> `{ item: {...} }`
+- `GET /api/reservations` -> `{ items: [...] }` (auth optional; returns empty list when not authenticated)
+- `POST /api/reservations` -> `{ reservation: {...} }` (requires `Authorization: Bearer <token>`)
+- `PATCH /api/reservations/:id` -> `{ reservation: {...} }` (requires `Authorization: Bearer <token>`)
+- `GET /api/users/me` -> `{ user: {...} | null }` (auth optional; returns `null` when not authenticated)
+
+### Extension points
+
+- **Auth**: see `middlewares/auth.js` (placeholder middleware to be replaced by real JWT/session verification)
+- **Routes**: see `routes/index.js` (central router where future endpoints can be registered)
+- **Database**: add your DB connection layer in `server.js` (or a dedicated `db/` module) and replace static responses in the route files
 
 ## Project structure (high level)
 

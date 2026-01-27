@@ -15,17 +15,21 @@ import {
 
 import { cn } from '@/lib/utils';
 
+type DashboardSidebarProps = {
+  basePath?: string;
+};
+
 const items = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/discover', label: 'Find Parking', icon: Map },
-  { href: '/dashboard/reservations', label: 'Reservations', icon: Calendar },
-  { href: '/dashboard/charging', label: 'EV Charging', icon: Zap },
-  { href: '/dashboard/payments', label: 'Payments', icon: CreditCard },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-  { href: '/dashboard/help', label: 'Help', icon: HelpCircle },
+  { path: '', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/discover', label: 'Find Parking', icon: Map },
+  { path: '/reservations', label: 'Reservations', icon: Calendar },
+  { path: '/charging', label: 'EV Charging', icon: Zap },
+  { path: '/payments', label: 'Payments', icon: CreditCard },
+  { path: '/settings', label: 'Settings', icon: Settings },
+  { path: '/help', label: 'Help', icon: HelpCircle },
 ];
 
-export default function DashboardSidebar() {
+export default function DashboardSidebar({ basePath = '/dashboard' }: DashboardSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -36,11 +40,12 @@ export default function DashboardSidebar() {
 
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto scrollbar-thin">
         {items.map((item) => {
-          const isActive = pathname === item.href;
+          const href = `${basePath}${item.path}`;
+          const isActive = pathname === href;
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={href}
+              href={href}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
                 isActive
