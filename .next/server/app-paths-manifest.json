@@ -1,4 +1,7 @@
 {
+  "/(landing)/parkings/page": "app/(landing)/parkings/page.js",
+  "/(dashboard)/admin/dashboard/charging/page": "app/(dashboard)/admin/dashboard/charging/page.js",
+  "/(dashboard)/admin/dashboard/settings/page": "app/(dashboard)/admin/dashboard/settings/page.js",
   "/(landing)/page": "app/(landing)/page.js",
-  "/(landing)/register/page": "app/(landing)/register/page.js"
+  "/(dashboard)/admin/dashboard/help/page": "app/(dashboard)/admin/dashboard/help/page.js"
 }

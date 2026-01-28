@@ -61,9 +61,115 @@ const parkings = [
   },
 ];
 
+function normalize(text) {
+  return String(text || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function buildSuggestions() {
+  const map = new Map();
+
+  const add = (item) => {
+    if (!item || !item.value) return;
+    map.set(item.id, item);
+  };
+
+  for (const p of parkings) {
+    add({
+      id: `parking:${p.id}`,
+      type: 'parking',
+      value: p.nameFr,
+      labelFr: p.nameFr,
+      labelEn: p.nameEn,
+      subtitleFr: p.locationFr,
+      subtitleEn: p.locationEn,
+      parkingId: p.id,
+      priceFr: p.priceFr,
+      priceEn: p.priceEn,
+      available: p.available,
+      hasEV: p.hasEV,
+    });
+
+    add({
+      id: `district:fr:${p.locationFr}`,
+      type: 'district',
+      value: p.locationFr,
+      labelFr: p.locationFr,
+      labelEn: p.locationEn,
+    });
+  }
+
+  // Exemple de structuration "city" en attendant une vraie DB.
+  add({ id: 'city:Paris', type: 'city', value: 'Paris', labelFr: 'Paris', labelEn: 'Paris' });
+
+  // Exemples "place" (landmarks) en attendant une vraie DB géographique.
+  add({
+    id: 'place:fr:Gare de Lyon',
+    type: 'place',
+    value: 'Gare de Lyon',
+    labelFr: 'Gare de Lyon',
+    labelEn: 'Gare de Lyon',
+    subtitleFr: 'Paris',
+    subtitleEn: 'Paris',
+  });
+  add({
+    id: 'place:fr:Aéroport CDG',
+    type: 'place',
+    value: 'Aéroport CDG',
+    labelFr: 'Aéroport CDG',
+    labelEn: 'CDG Airport',
+    subtitleFr: 'Paris',
+    subtitleEn: 'Paris',
+  });
+
+  return Array.from(map.values());
+}
+
+const suggestionsIndex = buildSuggestions();
+
+router.get('/parkings/suggestions', (req, res) => {
+  const rawQuery = typeof req.query.query === 'string' ? req.query.query : '';
+  const q = normalize(rawQuery);
+
+  if (!q || q.length < 2) {
+    return res.json({ items: [], query: rawQuery });
+  }
+
+  const scored = suggestionsIndex
+    .map((s) => {
+      const label = normalize(`${s.labelFr || ''} ${s.labelEn || ''} ${s.subtitleFr || ''} ${s.subtitleEn || ''}`);
+      if (!label) return null;
+      let score = 0;
+      if (label.startsWith(q)) score += 3;
+      if (label.includes(q)) score += 1;
+      return score > 0 ? { s, score } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score || String(a.s.labelFr).length - String(b.s.labelFr).length);
+
+  const items = scored.slice(0, 8).map(({ s }) => s);
+  return res.json({ items, query: rawQuery });
+});
+
 router.get('/parkings', (req, res) => {
-  // Plus tard: récupérer depuis la DB
-  res.json({ items: parkings });
+  const rawQuery = typeof req.query.query === 'string' ? req.query.query : '';
+  const query = rawQuery.trim().toLowerCase();
+
+  const items = !query
+    ? parkings
+    : parkings.filter((p) => {
+        const haystack = [p.nameEn, p.nameFr, p.locationEn, p.locationFr]
+          .filter(Boolean)
+          .join(' | ')
+          .toLowerCase();
+        return haystack.includes(query);
+      });
+
+  // Plus tard: récupérer depuis la DB (avec recherche serveur, pagination, etc.)
+  res.json({ items, query: rawQuery, total: items.length });
 });
 
 router.get('/parkings/:id', (req, res) => {

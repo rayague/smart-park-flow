@@ -11,11 +11,22 @@
  * - requireAuth: idem, mais renvoie 401 si non authentifié
  */
 
+import jwt from 'jsonwebtoken';
+
 function getBearerToken(req) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) return null;
   const token = header.slice('Bearer '.length).trim();
   return token || null;
+}
+
+function verifyToken(token) {
+  try {
+    const JWT_SECRET = process.env.JWT_SECRET || 'smartpark-secret-key-change-in-production';
+    return jwt.verify(token, JWT_SECRET);
+  } catch (error) {
+    return null;
+  }
 }
 
 function getRoleFromToken(token) {
@@ -29,14 +40,26 @@ export function optionalAuth(req, res, next) {
   const token = getBearerToken(req);
 
   if (token) {
-    // NOTE: Pour l'instant on ne valide pas le token (pas de DB / auth réelle).
-    // Plus tard: vérifier JWT + charger user depuis la DB.
-    req.user = {
-      id: 'user_1',
-      email: 'user@example.com',
-      role: getRoleFromToken(token),
-      token,
-    };
+    // Essayer de vérifier le token JWT
+    const decoded = verifyToken(token);
+    
+    if (decoded) {
+      // Token JWT valide
+      req.user = {
+        id: decoded.id,
+        email: decoded.email,
+        role: decoded.role,
+        token,
+      };
+    } else {
+      // Fallback pour l'ancien système (compatibilité)
+      req.user = {
+        id: 'user_1',
+        email: 'user@example.com',
+        role: getRoleFromToken(token),
+        token,
+      };
+    }
   } else {
     req.user = null;
   }

@@ -2,9 +2,12 @@
 
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchJson } from '@/lib/api';
+import CommandBarSearch from '@/components/search/CommandBarSearch';
 
 type ParkingItem = {
   id: string;
@@ -22,15 +25,25 @@ type ParkingItem = {
 
 type ParkingsResponse = {
   items: ParkingItem[];
+  total?: number;
+  query?: string;
 };
 
 export default function ParkingsPage() {
+  const searchParams = useSearchParams();
+  const queryFromUrl = searchParams?.get('query') ?? '';
+  const query = useMemo(() => queryFromUrl.trim(), [queryFromUrl]);
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['parkings'],
-    queryFn: () => fetchJson<ParkingsResponse>('/api/parkings'),
+    queryKey: ['parkings', query],
+    queryFn: () =>
+      fetchJson<ParkingsResponse>(
+        `/api/parkings${query ? `?query=${encodeURIComponent(query)}` : ''}`
+      ),
   });
 
   const parkings = data?.items ?? [];
+  const total = typeof data?.total === 'number' ? data.total : parkings.length;
 
   return (
     <main className="pt-28 pb-16">
@@ -39,30 +52,50 @@ export default function ParkingsPage() {
           <div className="absolute -top-24 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-blue-500/15 blur-3xl" />
           <div className="absolute -bottom-32 left-10 h-[520px] w-[520px] rounded-full bg-emerald-500/15 blur-3xl" />
           <div className="relative">
-            <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text mb-3">Parkings</h1>
+            <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text mb-3">
+              {query ? 'Résultats de recherche' : 'Parkings'}
+            </h1>
             <p className="text-muted-foreground max-w-2xl">
-              Découvre les parkings intelligents autour de toi. (Liste + carte à brancher ensuite.)
+              {query
+                ? `Recherche: “${query}” • ${total} résultat${total > 1 ? 's' : ''}`
+                : 'Recherchez une ville, un quartier, une adresse ou un lieu pour trouver un parking.'}
             </p>
+
+            <div className="mt-6">
+              <CommandBarSearch initialValue={query} />
+            </div>
           </div>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+        <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {isLoading
-            ? Array.from({ length: 3 }).map((_, idx) => (
+            ? Array.from({ length: 6 }).map((_, idx) => (
                 <div key={idx} className="rounded-2xl glass p-6 space-y-3">
                   <Skeleton className="h-6 w-2/3" />
                   <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="h-4 w-1/2" />
                 </div>
               ))
-            : parkings.slice(0, 3).map((parking) => (
+            : parkings.map((parking) => (
                 <div key={parking.id} className="rounded-2xl glass p-6">
                   <div className="font-display text-xl font-bold mb-2">{parking.nameFr}</div>
+                  <div className="text-sm text-muted-foreground mb-3">{parking.locationFr}</div>
                   <div className="text-muted-foreground">
                     {parking.available} places disponibles • {parking.hasEV ? 'EV ready' : 'Sans recharge'}
+                  </div>
+                  <div className="mt-3 text-sm">
+                    <span className="font-medium text-primary">{parking.priceFr}</span>
+                    <span className="text-muted-foreground"> • {parking.rating}★</span>
                   </div>
                 </div>
               ))}
         </div>
+
+        {!isLoading && !isError && parkings.length === 0 && (
+          <div className="mt-8 rounded-2xl glass p-6 text-muted-foreground">
+            Aucun parking ne correspond à votre recherche.
+          </div>
+        )}
 
         {isError && (
           <div className="mt-6 text-sm text-muted-foreground">

@@ -125,7 +125,7 @@ export function InitialLoader() {
     hasShownOnceRef.current = true;
 
     const animMs = isReplay ? 1800 : 2800;
-    const hardStopMs = isReplay ? 2000 : 3000;
+    const minVisibleMs = isReplay ? 2000 : 3000;
 
     const start = performance.now();
     let raf = 0;
@@ -141,12 +141,11 @@ export function InitialLoader() {
 
     const doneTimer = window.setTimeout(() => {
       setProgress(100);
-      beginExit();
-    }, Math.min(hardStopMs - 200, animMs));
+    }, animMs);
 
     const exitTimer = window.setTimeout(() => {
       beginExit();
-    }, hardStopMs);
+    }, minVisibleMs);
 
     return () => {
       window.cancelAnimationFrame(raf);
