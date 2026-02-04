@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  MANAGER
+  ADMIN
+}
+
+enum SpotStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+}
+
+enum SpotType {
+  REGULAR
+  EV
+}
+
+enum ReservationStatus {
+  PENDING
+  PAID
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String
+  role          Role           @default(USER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  reservations  Reservation[]
+  managedParking Parking[]      @relation("ManagedParkings")
+}
+
+model Parking {
+  id             String         @id @default(uuid())
+  name           String
+  address        String
+  city           String
+  latitude       Float?
+  longitude      Float?
+  pricePerHour   Float
+  totalSpots     Int
+  availableSpots Int
+  hasEvCharging  Boolean        @default(false)
+  rating         Float          @default(0)
+  status         String         @default("active")
+  managerId      String
+  manager        User           @relation("ManagedParkings", fields: [managerId], references: [id])
+  spots          Spot[]
+  reservations   Reservation[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Spot {
+  id           String        @id @default(uuid())
+  parkingId    String
+  parking      Parking       @relation(fields: [parkingId], references: [id], onDelete: Cascade)
+  number       String
+  type         SpotType      @default(REGULAR)
+  status       SpotStatus    @default(AVAILABLE)
+  reservations Reservation[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([parkingId, number])
+}
+
+model Reservation {
+  id           String            @id @default(uuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id])
+  spotId       String
+  spot         Spot              @relation(fields: [spotId], references: [id])
+  parkingId    String
+  parking      Parking           @relation(fields: [parkingId], references: [id])
+  parkingName  String
+  spotNumber   String
+  startTime    DateTime
+  endTime      DateTime
+  totalPrice   Float
+  status       ReservationStatus @default(PENDING)
+  paymentIntentId String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
