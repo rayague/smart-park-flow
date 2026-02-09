@@ -134,9 +134,25 @@ export const useParkingStore = create<ParkingState>((set) => ({
   setParkings: (parkings) => set({ parkings }),
   fetchParkings: async () => {
     try {
-      const { apiRequest } = await import('@/lib/api');
-      const data = await apiRequest<Parking[]>('/parkings');
-      set({ parkings: data });
+      const { supabase } = await import('@/lib/supabase');
+      const { data, error } = await supabase
+        .from('parkings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform data if necessary or just cast it
+      set({
+        parkings: (data as any[]).map(p => ({
+          ...p,
+          // Ensure arrays are initialized if null
+          images: p.images || [],
+          amenities: p.amenities || [],
+          // Parse opening hours if they are strings or JSON
+          openingHours: typeof p.opening_time === 'string' ? { open: p.opening_time, close: p.closing_time || '23:59' } : { open: '00:00', close: '23:59' }
+        })) as Parking[]
+      });
     } catch (error) {
       console.error('Failed to fetch parkings:', error);
     }
@@ -165,14 +181,28 @@ export const useReservationStore = create<ReservationState>((set) => ({
     set((state) => ({ reservations: [...state.reservations, reservation] })),
   fetchReservations: async () => {
     try {
-      const { apiRequest } = await import('@/lib/api');
-      const data = await apiRequest<Reservation[]>('/reservations');
+      const { supabase } = await import('@/lib/supabase');
+      const { data, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .order('start_time', { ascending: true }); // Note snake_case in DB
+
+      if (error) throw error;
+
       set({
-        reservations: data.map(r => ({
+        reservations: (data as any[]).map(r => ({
           ...r,
-          startTime: new Date(r.startTime),
-          endTime: new Date(r.endTime)
-        }))
+          startTime: new Date(r.start_time), // Map from snake_case DB to camelCase UI
+          endTime: new Date(r.end_time),
+          parkingId: r.parking_id,
+          parkingName: r.parking_name,
+          spotId: r.spot_id,
+          spotNumber: r.spot_number,
+          userId: r.user_id,
+          totalPrice: r.total_price,
+          vehiclePlate: r.vehicle_plate,
+          isEv: r.is_ev
+        })) as Reservation[]
       });
     } catch (error) {
       console.error('Failed to fetch reservations:', error);

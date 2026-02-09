@@ -27,29 +27,41 @@ export default function LoginPage() {
         setLoading(true)
 
         try {
-            const data = await apiRequest<{ user: any, token: string }>("/auth/login", {
-                method: "POST",
-                body: JSON.stringify({ email, password })
-            })
+            // Use Supabase Auth instead of custom API
+            const { signIn, getProfile } = await import('@/lib/auth')
+            const { user, session } = await signIn(email, password)
 
-            login(data.user, data.token)
+            if (!user) {
+                throw new Error('Login failed')
+            }
+
+            // Get user profile to get role
+            const profile = await getProfile(user.id)
+
+            // Store in auth store (convert role to lowercase)
+            login({
+                id: user.id,
+                email: user.email!,
+                name: profile.name,
+                role: profile.role.toLowerCase() as 'user' | 'manager' | 'admin'
+            }, session.access_token)
 
             toast({
                 title: t.common.success,
                 description: "Login successful!"
             })
 
-            // Brief delay for the loader to feel smooth
+            // Redirect based on role
             setTimeout(() => {
-                if (data.user.role === 'admin') router.push("/dashboard/admin")
-                else if (data.user.role === 'manager') router.push("/dashboard/proprietaire")
+                if (profile.role === 'ADMIN') router.push("/dashboard/admin")
+                else if (profile.role === 'MANAGER') router.push("/dashboard/proprietaire")
                 else router.push("/dashboard/client")
             }, 500)
 
         } catch (error: any) {
             toast({
                 title: t.common.error,
-                description: error.message || "Login failed",
+                description: error.message || "Login failed. Please check your credentials.",
                 variant: "destructive"
             })
         } finally {

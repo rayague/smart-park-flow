@@ -36,9 +36,18 @@ export function DashboardHeader() {
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  const handleLogout = () => {
-    logout()
-    router.push("/")
+  const handleLogout = async () => {
+    try {
+      const { signOut } = await import("@/lib/auth")
+      await signOut()
+      logout()
+      router.push("/")
+    } catch (error) {
+      console.error("Logout failed:", error)
+      // Force logout on error
+      logout()
+      router.push("/")
+    }
   }
 
   return (

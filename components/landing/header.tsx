@@ -29,6 +29,20 @@ export function Header() {
   const { openAuthModal } = useUIStore()
   const { user, isAuthenticated, logout } = useAuthStore()
   const { t, language } = useTranslation()
+  const router = require("next/navigation").useRouter()
+
+  const handleLogout = async () => {
+    try {
+      const { signOut } = await import("@/lib/auth")
+      await signOut()
+      logout()
+      router.push("/")
+    } catch (error) {
+      console.error("Logout failed:", error)
+      logout()
+      router.push("/")
+    }
+  }
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 20)
@@ -119,7 +133,7 @@ export function Header() {
                     <span>Dashboard</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout} className="rounded-lg cursor-pointer hover:bg-destructive/10 text-destructive focus:text-destructive gap-2">
+                <DropdownMenuItem onClick={handleLogout} className="rounded-lg cursor-pointer hover:bg-destructive/10 text-destructive focus:text-destructive gap-2">
                   <LogOut className="h-4 w-4" />
                   <span>{t.common.signOut}</span>
                 </DropdownMenuItem>

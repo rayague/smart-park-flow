@@ -23,7 +23,7 @@ const OccupancyHeatmap = dynamic(() => import("@/components/manager/occupancy-he
     loading: () => <div className="h-[400px] w-full animate-pulse rounded-2xl bg-muted/10 glass" />
 })
 
-import { useAuthStore, useReservationStore } from "@/lib/store"
+import { useAuthStore, useReservationStore, useParkingStore } from "@/lib/store"
 import { useTranslation } from "@/lib/i18n"
 
 export default function ProprietaireDashboard() {

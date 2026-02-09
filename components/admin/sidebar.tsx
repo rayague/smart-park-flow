@@ -27,6 +27,20 @@ export function AdminSidebar() {
     const [isCollapsed, setIsCollapsed] = React.useState(false)
     const { user, logout } = useAuthStore()
     const { t } = useTranslation()
+    const router = require("next/navigation").useRouter()
+
+    const handleLogout = async () => {
+        try {
+            const { signOut } = await import("@/lib/auth")
+            await signOut()
+            logout()
+            router.push("/")
+        } catch (error) {
+            console.error("Logout error:", error)
+            logout()
+            router.push("/")
+        }
+    }
 
     const navItems = [
         {
@@ -63,8 +77,9 @@ export function AdminSidebar() {
     ]
 
     const isActive = (href: string, exact?: boolean) => {
-        if (exact) return pathname === href
-        return pathname.startsWith(href)
+        const path = pathname || ""
+        if (exact) return path === href
+        return path.startsWith(href)
     }
 
     return (
@@ -188,7 +203,7 @@ export function AdminSidebar() {
                 <Button
                     variant="ghost"
                     size={isCollapsed ? "icon" : "default"}
-                    onClick={logout}
+                    onClick={handleLogout}
                     className={cn(
                         "mt-2 text-muted-foreground hover:text-destructive",
                         isCollapsed ? "w-full" : "w-full justify-start gap-3"
