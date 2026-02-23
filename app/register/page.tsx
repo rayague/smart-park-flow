@@ -24,12 +24,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
 import { useTranslation } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
+import { useAuthStore } from "@/lib/store"
 
 type Role = "client" | "proprietaire" | "admin" | null
 
 export default function RegisterPage() {
     const { t } = useTranslation()
     const router = useRouter()
+    const { login, setLoading, isLoading } = useAuthStore()
     const [step, setStep] = React.useState(0)
     const [role, setRole] = React.useState<Role>(null)
     const [formData, setFormData] = React.useState({
@@ -69,12 +71,58 @@ export default function RegisterPage() {
     }
 
     const handleSubmit = async () => {
-        setStep(4) // Success step
-        setTimeout(() => {
-            if (role === "proprietaire") router.push("/dashboard/proprietaire")
-            else if (role === "admin") router.push("/dashboard/admin")
-            else router.push("/dashboard/client")
-        }, 2000)
+        setLoading(true)
+        try {
+            const { signUp, upsertProfile } = await import("@/lib/auth")
+
+            const fullName = `${formData.firstName} ${formData.lastName}`.trim()
+            const dbRole = role === "admin" ? "ADMIN" : role === "proprietaire" ? "MANAGER" : "USER"
+
+            const { user, session } = await signUp(formData.email, formData.password, {
+                name: fullName,
+                role: dbRole as any,
+            })
+
+            if (!user) {
+                throw new Error("Signup failed")
+            }
+
+            const profile = await upsertProfile({
+                id: user.id,
+                email: user.email || formData.email,
+                name: fullName,
+                phone: formData.phone || null,
+                role: dbRole as any,
+            })
+
+            setStep(4) // Success step
+
+            setTimeout(() => {
+                if (session?.access_token) {
+                    login(
+                        {
+                            id: user.id,
+                            email: user.email!,
+                            name: profile.name,
+                            role: profile.role.toLowerCase() as 'user' | 'manager' | 'admin',
+                            avatar: profile.avatar_url ?? undefined,
+                            createdAt: new Date(profile.created_at),
+                        },
+                        session.access_token
+                    )
+
+                    if (profile.role === "ADMIN") router.push("/dashboard/admin")
+                    else if (profile.role === "MANAGER") router.push("/dashboard/manager")
+                    else router.push("/dashboard/client")
+                } else {
+                    router.push("/login")
+                }
+            }, 1200)
+        } catch (e) {
+            router.push("/login")
+        } finally {
+            setLoading(false)
+        }
     }
 
     const progressValue = (step / 3) * 100
@@ -208,7 +256,7 @@ export default function RegisterPage() {
                                                         value={formData.firstName}
                                                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                                         placeholder="John"
-                                                        className="h-14 rounded-2xl bg-white/5 border-white/10"
+                                                        className="h-14 rounded-2xl bg-background border-border/50 focus:border-primary"
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
@@ -217,7 +265,7 @@ export default function RegisterPage() {
                                                         value={formData.lastName}
                                                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                                         placeholder="Doe"
-                                                        className="h-14 rounded-2xl bg-white/5 border-white/10"
+                                                        className="h-14 rounded-2xl bg-background border-border/50 focus:border-primary"
                                                     />
                                                 </div>
                                             </div>
@@ -230,7 +278,7 @@ export default function RegisterPage() {
                                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                         type="email"
                                                         placeholder="john@example.com"
-                                                        className="h-14 rounded-2xl bg-white/5 border-white/10 pl-12"
+                                                        className="h-14 rounded-2xl bg-background border-border/50 focus:border-primary pl-12"
                                                     />
                                                 </div>
                                             </div>
@@ -251,7 +299,7 @@ export default function RegisterPage() {
                                                             value={formData.vehiclePlate}
                                                             onChange={(e) => setFormData({ ...formData, vehiclePlate: e.target.value })}
                                                             placeholder="AA-123-BB"
-                                                            className="h-14 rounded-2xl bg-white/5 border-white/10 pl-12"
+                                                            className="h-14 rounded-2xl bg-background border-border/50 focus:border-primary pl-12"
                                                         />
                                                     </div>
                                                 </div>
@@ -265,7 +313,7 @@ export default function RegisterPage() {
                                                                 value={formData.companyName}
                                                                 onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                                                                 placeholder="Smart Park Solutions S.A."
-                                                                className="h-14 rounded-2xl bg-white/5 border-white/10 pl-12"
+                                                                className="h-14 rounded-2xl bg-background border-border/50 focus:border-primary pl-12"
                                                             />
                                                         </div>
                                                     </div>
@@ -277,7 +325,7 @@ export default function RegisterPage() {
                                                                 value={formData.phone}
                                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                                                 placeholder="+33 6 12 34 56 78"
-                                                                className="h-14 rounded-2xl bg-white/5 border-white/10 pl-12"
+                                                                className="h-14 rounded-2xl bg-background border-border/50 focus:border-primary pl-12"
                                                             />
                                                         </div>
                                                     </div>
@@ -298,7 +346,7 @@ export default function RegisterPage() {
                                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                         type="password"
                                                         placeholder="••••••••"
-                                                        className="h-14 rounded-2xl bg-white/5 border-white/10 pl-12"
+                                                        className="h-14 rounded-2xl bg-background border-border/50 focus:border-primary pl-12"
                                                     />
                                                 </div>
                                                 <p className="text-[10px] text-muted-foreground ml-1">Minimum 8 characters with at least one number.</p>
@@ -324,10 +372,10 @@ export default function RegisterPage() {
                                 <div className="pt-4">
                                     <Button
                                         onClick={handleNext}
-                                        disabled={!isStepValid()}
+                                        disabled={!isStepValid() || isLoading}
                                         className="w-full h-16 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary to-accent transition-all animate-in fade-in"
                                     >
-                                        {step === 3 ? "Create Account" : "Next Step"}
+                                        {isLoading ? "Loading..." : step === 3 ? "Create Account" : "Next Step"}
                                         <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>
                                     {!isStepValid() && (

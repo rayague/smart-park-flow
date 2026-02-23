@@ -22,19 +22,71 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { useTranslation } from "@/lib/i18n"
-
-// Mock spots data
-const spots = Array.from({ length: 48 }, (_, i) => ({
-    id: `spot-${i + 1}`,
-    name: `${String.fromCharCode(65 + Math.floor(i / 12))}-${(i % 12) + 1}`,
-    status: Math.random() > 0.7 ? "occupied" : Math.random() > 0.9 ? "maintenance" : "available",
-    type: Math.random() > 0.8 ? "ev" : "standard",
-    lastUsed: "2h ago"
-}))
+import { supabase } from "@/lib/supabase"
+import { useAuthStore, useParkingStore } from "@/lib/store"
 
 export default function ManagerSpotsPage() {
     const { t } = useTranslation()
     const [filter, setFilter] = React.useState("all")
+
+    const { user } = useAuthStore()
+    const { parkings, fetchParkings } = useParkingStore()
+    const [spots, setSpots] = React.useState<
+        Array<{
+            id: string
+            name: string
+            status: "occupied" | "maintenance" | "available"
+            type: "ev" | "standard"
+        }>
+    >([])
+
+    React.useEffect(() => {
+        fetchParkings()
+    }, [fetchParkings])
+
+    React.useEffect(() => {
+        if (!user) return
+
+        const parkingId = parkings[0]?.id
+        if (!parkingId) {
+            setSpots([])
+            return
+        }
+
+        let cancelled = false
+        ;(async () => {
+            const { data, error } = await supabase
+                .from("spots")
+                .select("*")
+                .eq("parking_id", parkingId)
+                .order("number", { ascending: true })
+
+            if (cancelled) return
+            if (error) {
+                console.error("Failed to load spots:", error)
+                setSpots([])
+                return
+            }
+
+            setSpots(
+                (data || []).map((s) => ({
+                    id: s.id,
+                    name: s.number,
+                    status:
+                        s.status === "OCCUPIED"
+                            ? "occupied"
+                            : s.status === "MAINTENANCE"
+                                ? "maintenance"
+                                : "available",
+                    type: s.type === "EV" ? "ev" : "standard",
+                }))
+            )
+        })()
+
+        return () => {
+            cancelled = true
+        }
+    }, [user, parkings])
 
     const filteredSpots = spots.filter(s => {
         if (filter === "all") return true
@@ -118,7 +170,7 @@ export default function ManagerSpotsPage() {
                                 ? "border-primary/20 hover:border-primary"
                                 : spot.status === "maintenance"
                                     ? "border-yellow-500/20 hover:border-yellow-500"
-                                    : "border-transparent bg-secondary/50"
+                                    : "border-transparent bg-subtle"
                             }`}
                     >
                         {/* Spot Content */}

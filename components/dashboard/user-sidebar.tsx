@@ -23,21 +23,20 @@ import { useTranslation } from "@/lib/i18n"
 export function UserSidebar() {
     const pathname = usePathname()
     const [isCollapsed, setIsCollapsed] = React.useState(false)
+    const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false)
     const { user, logout } = useAuthStore()
     const { t } = useTranslation()
-    const router = require("next/navigation").useRouter()
 
     const handleLogout = async () => {
+        setShowLogoutConfirm(false)
         try {
             const { signOut } = await import("@/lib/auth")
             await signOut()
-            logout()
-            router.push("/")
         } catch (error) {
-            console.error("Logout error:", error)
-            logout()
-            router.push("/")
+            console.error("SignOut error:", error)
         }
+        logout()
+        window.location.href = "/"
     }
 
     const navItems = [
@@ -76,6 +75,7 @@ export function UserSidebar() {
     }
 
     return (
+        <>
         <motion.aside
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -193,9 +193,9 @@ export function UserSidebar() {
                 <Button
                     variant="ghost"
                     size={isCollapsed ? "icon" : "default"}
-                    onClick={handleLogout}
+                    onClick={() => setShowLogoutConfirm(true)}
                     className={cn(
-                        "mt-2 text-muted-foreground hover:text-destructive",
+                        "mt-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer",
                         isCollapsed ? "w-full" : "w-full justify-start gap-3"
                     )}
                 >
@@ -214,5 +214,40 @@ export function UserSidebar() {
                 </Button>
             </div>
         </motion.aside>
+
+        {/* Simple Logout Modal */}
+        {showLogoutConfirm && (
+            <div 
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                onClick={() => setShowLogoutConfirm(false)}
+            >
+                <div 
+                    className="bg-background rounded-lg border p-6 shadow-lg w-full max-w-sm mx-4"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <h2 className="text-lg font-semibold mb-2">Confirm Sign Out</h2>
+                    <p className="text-muted-foreground text-sm mb-6">
+                        Are you sure you want to sign out?
+                    </p>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowLogoutConfirm(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleLogout}
+                        >
+                            Sign Out
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     )
 }

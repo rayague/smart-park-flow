@@ -97,7 +97,7 @@ export default function ProprietaireParkingsPage() {
                             className="group relative overflow-hidden rounded-2xl glass p-6 card-hover"
                         >
                             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-                                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary-box text-primary">
                                     <Car className="h-8 w-8" />
                                 </div>
 

@@ -8,6 +8,7 @@ import { Suspense } from 'react'
 import { Analytics } from '@/components/analytics'
 
 import { StarrySkyWrapper } from "@/components/three/starry-sky-wrapper"
+import { AuthBootstrap } from '@/components/auth/auth-bootstrap'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -38,6 +39,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
+          <AuthBootstrap />
           <Suspense fallback={null}>
             <RoutingLoader />
           </Suspense>

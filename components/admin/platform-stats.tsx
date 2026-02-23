@@ -13,6 +13,8 @@ import {
     Wifi
 } from "lucide-react"
 import { useTranslation } from "@/lib/i18n"
+import { supabase } from "@/lib/supabase"
+import { useReservationStore, useParkingStore } from "@/lib/store"
 
 interface PlatformStat {
     title: string
@@ -25,11 +27,38 @@ interface PlatformStat {
 
 export function PlatformStats() {
     const { t } = useTranslation()
+    const { reservations, fetchReservations } = useReservationStore()
+    const { parkings, fetchParkings } = useParkingStore()
+    const [userCount, setUserCount] = React.useState(0)
+    const [managerCount, setManagerCount] = React.useState(0)
+    const [loading, setLoading] = React.useState(true)
+
+    React.useEffect(() => {
+        fetchReservations()
+        fetchParkings()
+        
+        async function fetchCounts() {
+            const [usersRes, managersRes] = await Promise.all([
+                supabase.from('profiles').select('id', { count: 'exact', head: true }),
+                supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'MANAGER')
+            ])
+            
+            if (usersRes.count !== null) setUserCount(usersRes.count)
+            if (managersRes.count !== null) setManagerCount(managersRes.count)
+            setLoading(false)
+        }
+        
+        fetchCounts()
+    }, [fetchReservations, fetchParkings])
+
+    const totalRevenue = React.useMemo(() => 
+        reservations.reduce((acc, r) => acc + r.totalPrice, 0),
+    [reservations])
 
     const stats: PlatformStat[] = [
         {
             title: t.adminDashboard.stats.totalUsers,
-            value: "12,458",
+            value: loading ? '-' : userCount.toLocaleString(),
             subtitle: t.adminDashboard.stats.activeToday,
             icon: Users,
             gradient: "from-blue-500 to-cyan-400",
@@ -37,7 +66,7 @@ export function PlatformStats() {
         },
         {
             title: t.adminDashboard.stats.totalManagers,
-            value: "156",
+            value: loading ? '-' : managerCount.toLocaleString(),
             subtitle: t.adminDashboard.stats.newThisWeek,
             icon: Building2,
             gradient: "from-purple-500 to-pink-400",
@@ -45,7 +74,7 @@ export function PlatformStats() {
         },
         {
             title: t.adminDashboard.stats.totalParkings,
-            value: "523",
+            value: loading ? '-' : parkings.length.toLocaleString(),
             subtitle: "Verified locations",
             icon: ParkingCircle,
             gradient: "from-orange-500 to-red-400",
@@ -53,7 +82,7 @@ export function PlatformStats() {
         },
         {
             title: t.adminDashboard.stats.platformRevenue,
-            value: "$284,582",
+            value: loading ? '-' : `€${totalRevenue.toLocaleString()}`,
             subtitle: "This month",
             icon: DollarSign,
             gradient: "from-green-500 to-emerald-400",
@@ -124,10 +153,10 @@ export function SystemHealth() {
                 {services.map((service) => (
                     <div
                         key={service.name}
-                        className="flex items-center justify-between rounded-xl bg-secondary/30 p-3"
+                        className="flex items-center justify-between rounded-xl bg-subtle p-3"
                     >
                         <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-icon-box">
                                 <service.icon className="h-4 w-4 text-muted-foreground" />
                             </div>
                             <span className="font-medium">{service.name}</span>

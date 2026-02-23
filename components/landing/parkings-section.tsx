@@ -6,14 +6,28 @@ import { motion, useInView } from "framer-motion"
 import { Star, MapPin, Zap, Clock, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { mockParkings } from "@/lib/data/mock-data"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
 
 function ParkingCard({ 
   parking, 
   index 
 }: { 
-  parking: typeof mockParkings[0]
+  parking: {
+    id: string
+    name: string
+    address: string
+    city: string
+    latitude: number
+    longitude: number
+    totalSpots: number
+    availableSpots: number
+    pricePerHour: number
+    hasEvCharging: boolean
+    rating: number
+    images: string[]
+    amenities: string[]
+  }
   index: number 
 }) {
   const ref = React.useRef(null)
@@ -85,13 +99,13 @@ function ParkingCard({
             {parking.amenities.slice(0, 3).map((amenity) => (
               <span 
                 key={amenity}
-                className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground"
+                className="rounded-full bg-subtle px-2 py-0.5 text-xs text-muted-foreground"
               >
                 {amenity}
               </span>
             ))}
             {parking.amenities.length > 3 && (
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+              <span className="rounded-full bg-subtle px-2 py-0.5 text-xs text-muted-foreground">
                 +{parking.amenities.length - 3}
               </span>
             )}
@@ -136,6 +150,66 @@ export function ParkingsSection() {
   const titleRef = React.useRef(null)
   const isTitleInView = useInView(titleRef, { once: true })
 
+  const [parkings, setParkings] = React.useState<
+    Array<{
+      id: string
+      name: string
+      address: string
+      city: string
+      latitude: number
+      longitude: number
+      totalSpots: number
+      availableSpots: number
+      pricePerHour: number
+      hasEvCharging: boolean
+      rating: number
+      images: string[]
+      amenities: string[]
+    }>
+  >([])
+
+  React.useEffect(() => {
+    let cancelled = false
+
+    ;(async () => {
+      const { data, error } = await supabase
+        .from('parkings')
+        .select('*')
+        .eq('status', 'ACTIVE')
+        .order('created_at', { ascending: false })
+        .limit(6)
+
+      if (cancelled) return
+      if (error) {
+        console.error('Failed to load parkings:', error)
+        setParkings([])
+        return
+      }
+
+      setParkings(
+        (data || []).map((p) => ({
+          id: p.id,
+          name: p.name,
+          address: p.address,
+          city: p.city,
+          latitude: p.latitude ?? 0,
+          longitude: p.longitude ?? 0,
+          totalSpots: p.total_spots,
+          availableSpots: p.available_spots,
+          pricePerHour: p.price_per_hour,
+          hasEvCharging: !!p.has_ev_charging,
+          rating: p.rating ?? 0,
+          images: p.images ?? [],
+          amenities: p.amenities ?? [],
+        }))
+      )
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <section id="parkings" className="relative py-24 bg-secondary/30">
       <div className="container mx-auto px-4">
@@ -169,7 +243,7 @@ export function ParkingsSection() {
 
         {/* Parkings Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {mockParkings.map((parking, index) => (
+          {parkings.map((parking, index) => (
             <ParkingCard key={parking.id} parking={parking} index={index} />
           ))}
         </div>

@@ -41,22 +41,71 @@ export function AuthModal() {
     }
 
     try {
-      const { apiRequest } = await import("@/lib/api")
+      const { signIn, signUp, upsertProfile, getProfile } = await import("@/lib/auth")
 
-      const endpoint = authModalView === "login" ? "/auth/login" : "/auth/register"
-      const data = await apiRequest<{ user: any, token: string }>(endpoint, {
-        method: "POST",
-        body: JSON.stringify(formData)
-      })
+      if (authModalView === "login") {
+        const { user, session } = await signIn(formData.email, formData.password)
 
-      login(data.user, data.token)
-      closeAuthModal()
+        if (!user || !session) {
+          throw new Error("Login failed")
+        }
 
-      // Redirect based on role
-      const role = data.user.role
-      if (role === 'admin') window.location.href = "/dashboard/admin"
-      else if (role === 'manager') window.location.href = "/dashboard/proprietaire"
-      else window.location.href = "/dashboard/client"
+        const profile = await getProfile(user.id)
+
+        login(
+          {
+            id: user.id,
+            email: user.email || formData.email,
+            name: profile.name,
+            role: profile.role.toLowerCase() as 'user' | 'manager' | 'admin',
+            avatar: profile.avatar_url ?? undefined,
+            createdAt: new Date(profile.created_at),
+          },
+          session.access_token
+        )
+
+        closeAuthModal()
+
+        const role = profile.role
+        if (role === 'ADMIN') window.location.href = "/dashboard/admin"
+        else if (role === 'MANAGER') window.location.href = "/dashboard/manager"
+        else window.location.href = "/dashboard/client"
+      } else {
+        const { user, session } = await signUp(formData.email, formData.password, {
+          name: formData.name,
+          role: 'USER',
+        })
+
+        if (!user) {
+          throw new Error("Signup failed")
+        }
+
+        const profile = await upsertProfile({
+          id: user.id,
+          email: user.email || formData.email,
+          name: formData.name,
+          role: 'USER',
+        })
+
+        if (session?.access_token) {
+          login(
+            {
+              id: user.id,
+              email: user.email || formData.email,
+              name: profile.name,
+              role: profile.role.toLowerCase() as 'user' | 'manager' | 'admin',
+              avatar: profile.avatar_url ?? undefined,
+              createdAt: new Date(profile.created_at),
+            },
+            session.access_token
+          )
+          closeAuthModal()
+          window.location.href = "/dashboard/client"
+        } else {
+          closeAuthModal()
+          openAuthModal("login")
+        }
+      }
 
     } catch (error: any) {
       setErrors({ server: error.message || "Authentication failed" })
@@ -74,17 +123,28 @@ export function AuthModal() {
     }
 
     try {
-      const { apiRequest } = await import("@/lib/api")
-      const data = await apiRequest<{ user: any, token: string }>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email: emails[role], password: "password123" })
-      })
+      const { signIn, getProfile } = await import("@/lib/auth")
+      const { user, session } = await signIn(emails[role], "password123")
 
-      login(data.user, data.token)
+      if (!user || !session) throw new Error("Demo login failed")
+
+      const profile = await getProfile(user.id)
+      login(
+        {
+          id: user.id,
+          email: user.email || emails[role],
+          name: profile.name,
+          role: profile.role.toLowerCase() as 'user' | 'manager' | 'admin',
+          avatar: profile.avatar_url ?? undefined,
+          createdAt: new Date(profile.created_at),
+        },
+        session.access_token
+      )
+
       closeAuthModal()
 
       if (role === 'admin') window.location.href = "/dashboard/admin"
-      else if (role === 'manager') window.location.href = "/dashboard/proprietaire"
+      else if (role === 'manager') window.location.href = "/dashboard/manager"
       else window.location.href = "/dashboard/client"
     } catch (error) {
       console.error("Demo login failed", error)

@@ -139,7 +139,7 @@ export default function AdminSettingsPage() {
                                 className="rounded-2xl glass p-6"
                             >
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className={`p-2 rounded-lg ${item.status === 'ok' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                    <div className={`p-2 rounded-lg ${item.status === 'ok' ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
                                         <item.icon className="h-5 w-5" />
                                     </div>
                                     <div className={`h-2 w-2 rounded-full animate-pulse ${item.status === 'ok' ? 'bg-green-500' : 'bg-yellow-500'}`} />

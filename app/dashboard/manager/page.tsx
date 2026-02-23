@@ -13,52 +13,33 @@ import { Button } from "@/components/ui/button"
 import { StatsOverview } from "@/components/manager/stats-overview"
 import { RevenueChart } from "@/components/manager/revenue-chart"
 import { OccupancyHeatmap } from "@/components/manager/occupancy-heatmap"
-import { useAuthStore } from "@/lib/store"
+import { useAuthStore, useParkingStore, useReservationStore } from "@/lib/store"
 import { useTranslation } from "@/lib/i18n"
-
-// Mock recent bookings data
-const recentBookings = [
-    {
-        id: "1",
-        customer: "Jean Dupont",
-        vehicle: "AB-123-CD",
-        spot: "A-15",
-        startTime: "10:00",
-        endTime: "14:00",
-        status: "active",
-    },
-    {
-        id: "2",
-        customer: "Marie Martin",
-        vehicle: "EF-456-GH",
-        spot: "B-08",
-        startTime: "09:30",
-        endTime: "12:30",
-        status: "active",
-    },
-    {
-        id: "3",
-        customer: "Pierre Durand",
-        vehicle: "IJ-789-KL",
-        spot: "C-22",
-        startTime: "11:00",
-        endTime: "15:00",
-        status: "pending",
-    },
-    {
-        id: "4",
-        customer: "Sophie Leroy",
-        vehicle: "MN-012-OP",
-        spot: "A-03",
-        startTime: "08:00",
-        endTime: "18:00",
-        status: "active",
-    },
-]
 
 export default function ManagerDashboard() {
     const { user } = useAuthStore()
     const { t } = useTranslation()
+
+    const { parkings, fetchParkings } = useParkingStore()
+    const { reservations, fetchReservations } = useReservationStore()
+
+    React.useEffect(() => {
+        fetchParkings()
+        fetchReservations()
+    }, [fetchParkings, fetchReservations])
+
+    const recentBookings = React.useMemo(() => reservations.slice(0, 5), [reservations])
+
+    const stats = React.useMemo(() => {
+        const totalRevenue = reservations.reduce((acc, curr) => acc + curr.totalPrice, 0)
+        const activeBookings = reservations.filter((r) => r.status === "active").length
+        const totalSpots = parkings.reduce((acc, curr) => acc + curr.totalSpots, 0)
+        const availableSpots = parkings.reduce((acc, curr) => acc + curr.availableSpots, 0)
+        const occupancy = totalSpots > 0 ? Math.round(((totalSpots - availableSpots) / totalSpots) * 100) : 0
+        const evSessions = reservations.filter((r) => r.isEv).length
+
+        return { totalRevenue, occupancy, activeBookings, evSessions }
+    }, [parkings, reservations])
 
     return (
         <div className="space-y-6">
@@ -77,7 +58,12 @@ export default function ManagerDashboard() {
             </motion.div>
 
             {/* Stats Overview */}
-            <StatsOverview />
+            <StatsOverview
+                revenue={stats.totalRevenue}
+                occupancy={stats.occupancy}
+                activeBookings={stats.activeBookings}
+                evSessions={stats.evSessions}
+            />
 
             {/* Charts Grid */}
             <div className="grid gap-6 lg:grid-cols-2">
@@ -125,37 +111,46 @@ export default function ManagerDashboard() {
                                 >
                                     <td className="py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-icon-box">
                                                 <span className="text-sm font-medium">
-                                                    {booking.customer.charAt(0)}
+                                                    {(booking.parkingName || "R").charAt(0)}
                                                 </span>
                                             </div>
-                                            <span className="font-medium">{booking.customer}</span>
+                                            <span className="font-medium">{booking.parkingName}</span>
                                         </div>
                                     </td>
                                     <td className="py-4">
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Car className="h-4 w-4" />
-                                            <span>{booking.vehicle}</span>
+                                            <span>{booking.vehiclePlate || "-"}</span>
                                         </div>
                                     </td>
                                     <td className="py-4">
-                                        <span className="rounded-lg bg-secondary px-2 py-1 text-sm font-medium">
-                                            {booking.spot}
+                                        <span className="rounded-lg bg-icon-box px-2 py-1 text-sm font-medium">
+                                            {booking.spotNumber}
                                         </span>
                                     </td>
                                     <td className="py-4">
                                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <Clock className="h-4 w-4" />
-                                            <span>{booking.startTime} - {booking.endTime}</span>
+                                            <span>
+                                                {booking.startTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} -
+                                                {booking.endTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="py-4">
                                         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${booking.status === "active"
-                                                ? "bg-green-500/10 text-green-500"
-                                                : "bg-yellow-500/10 text-yellow-500"
+                                            ? "bg-green-500/10 text-green-500"
+                                            : booking.status === "pending"
+                                                ? "bg-yellow-500/10 text-yellow-500"
+                                                : "bg-secondary text-muted-foreground"
                                             }`}>
-                                            <span className={`h-1.5 w-1.5 rounded-full ${booking.status === "active" ? "bg-green-500" : "bg-yellow-500"
+                                            <span className={`h-1.5 w-1.5 rounded-full ${booking.status === "active"
+                                                ? "bg-green-500"
+                                                : booking.status === "pending"
+                                                    ? "bg-yellow-500"
+                                                    : "bg-muted-foreground"
                                                 }`} />
                                             {booking.status}
                                         </span>

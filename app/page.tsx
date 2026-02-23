@@ -12,10 +12,12 @@ import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
 export default function LandingPage() {
-  const { isAuthenticated, user } = useAuthStore()
+  const { isAuthenticated, user, initialized } = useAuthStore()
   const router = useRouter()
 
   useEffect(() => {
+    if (!initialized) return
+
     if (isAuthenticated && user) {
       // Redirect based on user role
       switch (user.role) {
@@ -29,7 +31,7 @@ export default function LandingPage() {
           router.push("/dashboard")
       }
     }
-  }, [isAuthenticated, user, router])
+  }, [initialized, isAuthenticated, user, router])
 
   return (
     <main className="min-h-screen bg-background">

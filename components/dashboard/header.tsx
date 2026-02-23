@@ -28,11 +28,15 @@ import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 export function DashboardHeader() {
-  const { toggleSidebar, notifications, markNotificationRead } = useUIStore()
+  const { toggleSidebar, notifications, markNotificationRead, fetchNotifications } = useUIStore()
   const { user, logout } = useAuthStore()
   const router = useRouter()
   const [isSearchFocused, setIsSearchFocused] = React.useState(false)
   const [showNotifications, setShowNotifications] = React.useState(false)
+
+  React.useEffect(() => {
+    fetchNotifications()
+  }, [fetchNotifications])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
@@ -97,7 +101,7 @@ export function DashboardHeader() {
             variant="ghost"
             size="icon"
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative"
+            className="relative cursor-pointer"
           >
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
@@ -145,7 +149,7 @@ export function DashboardHeader() {
                           key={notification.id}
                           onClick={() => markNotificationRead(notification.id)}
                           className={cn(
-                            "flex w-full gap-3 border-b border-border p-4 text-left transition-colors hover:bg-muted/50",
+                            "flex w-full cursor-pointer gap-3 border-b border-border p-4 text-left transition-colors hover:bg-muted/50",
                             !notification.read && "bg-primary/5"
                           )}
                         >

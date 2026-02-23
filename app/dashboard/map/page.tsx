@@ -20,19 +20,22 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { ParkingMap } from "@/components/dashboard/parking-map"
-import { mockParkings } from "@/lib/data/mock-data"
 import { useParkingStore } from "@/lib/store"
 import type { Parking } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 
 export default function MapPage() {
-  const { selectParking, selectedParking, searchQuery, setSearchQuery, filters, setFilters } = useParkingStore()
+  const { parkings, fetchParkings, selectParking, selectedParking, searchQuery, setSearchQuery, filters, setFilters } = useParkingStore()
   const [showFilters, setShowFilters] = React.useState(false)
   const [priceRange, setPriceRange] = React.useState([0, 10])
 
+  React.useEffect(() => {
+    fetchParkings()
+  }, [fetchParkings])
+
   const filteredParkings = React.useMemo(() => {
-    return mockParkings.filter((parking) => {
+    return parkings.filter((parking) => {
       const matchesSearch = 
         parking.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         parking.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -45,7 +48,7 @@ export default function MapPage() {
 
       return matchesSearch && matchesEv && matchesPrice
     })
-  }, [searchQuery, filters.hasEv, priceRange])
+  }, [parkings, searchQuery, filters.hasEv, priceRange])
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col gap-4 lg:flex-row">
@@ -250,6 +253,7 @@ export default function MapPage() {
         className="flex-1 overflow-hidden rounded-2xl"
       >
         <ParkingMap
+          parkings={filteredParkings}
           onSelectParking={selectParking}
           selectedParking={selectedParking}
           className="h-full"

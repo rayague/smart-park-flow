@@ -7,9 +7,11 @@ import Loading from "./loading"
 
 export default function DashboardRoot() {
   const router = useRouter()
-  const { user } = useAuthStore()
+  const { user, initialized } = useAuthStore()
 
   useEffect(() => {
+    if (!initialized) return
+
     if (!user) {
       router.push("/login")
       return
@@ -18,11 +20,11 @@ export default function DashboardRoot() {
     if (user.role === "admin") {
       router.push("/dashboard/admin")
     } else if (user.role === "manager") {
-      router.push("/dashboard/proprietaire")
+      router.push("/dashboard/manager")
     } else {
       router.push("/dashboard/client")
     }
-  }, [user, router])
+  }, [initialized, user, router])
 
   return <Loading />
 }

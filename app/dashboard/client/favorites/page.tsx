@@ -49,9 +49,9 @@ export default function ClientFavoritesPage() {
                             </Button>
                         </div>
 
-                        <div className="h-40 bg-secondary/50 relative">
+                        <div className="h-40 bg-subtle relative">
                             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                                <MapPin className="h-10 w-10 opacity-20" />
+                                <MapPin className="h-10 w-10 opacity-40" />
                             </div>
                         </div>
 
@@ -87,9 +87,9 @@ export default function ClientFavoritesPage() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-secondary/20 p-6 text-center hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer"
+                    className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-subtle p-6 text-center hover:border-primary/50 hover:bg-icon-box transition-all cursor-pointer"
                 >
-                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-icon-box">
                         <Star className="h-8 w-8 text-muted-foreground" />
                     </div>
                     <h3 className="font-semibold text-lg">Add Favorites</h3>

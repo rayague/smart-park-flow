@@ -13,51 +13,27 @@ import {
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/lib/i18n"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useReservationStore } from "@/lib/store"
+import { format } from "date-fns"
 
 export default function ClientReservationsPage() {
     const { t } = useTranslation()
 
-    // Mock data
-    const reservations = {
-        active: [
-            {
-                id: "1",
-                parkingName: "Central Station Parking",
-                location: "Downtown",
-                spot: "A-15",
-                date: "Today, Feb 4",
-                time: "14:00 - 16:00",
-                price: 12.50,
-                status: "active"
-            }
-        ],
-        upcoming: [
-            {
-                id: "2",
-                parkingName: "Mall Plaza Garage",
-                location: "Shopping District",
-                spot: "B-08",
-                date: "Tomorrow, Feb 5",
-                time: "10:00 - 12:00",
-                price: 8.00,
-                status: "upcoming"
-            }
-        ],
-        past: [
-            {
-                id: "3",
-                parkingName: "Tech Hub EV Center",
-                location: "Business Park",
-                spot: "E-02",
-                date: "Jan 28, 2024",
-                time: "09:00 - 17:00",
-                price: 45.00,
-                status: "completed"
-            }
-        ]
-    }
+    const { reservations, fetchReservations } = useReservationStore()
 
-    const ReservationCard = ({ booking }: { booking: any }) => (
+    React.useEffect(() => {
+        fetchReservations()
+    }, [fetchReservations])
+
+    const grouped = React.useMemo(() => {
+        const active = reservations.filter((r) => r.status === "active")
+        const upcoming = reservations.filter((r) => r.status === "pending")
+        const past = reservations.filter((r) => r.status === "completed" || r.status === "cancelled")
+
+        return { active, upcoming, past }
+    }, [reservations])
+
+    const ReservationCard = ({ booking }: { booking: (typeof reservations)[number] & { viewStatus?: string } }) => (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -71,25 +47,25 @@ export default function ClientReservationsPage() {
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-serif text-lg font-bold">{booking.parkingName}</h3>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${booking.status === "active" ? "bg-green-500/10 text-green-500" :
-                                booking.status === "upcoming" ? "bg-blue-500/10 text-blue-500" :
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${booking.viewStatus === "active" ? "bg-green-500/10 text-green-500" :
+                                booking.viewStatus === "upcoming" ? "bg-blue-500/10 text-blue-500" :
                                     "bg-secondary text-muted-foreground"
                                 }`}>
-                                {booking.status}
+                                {booking.viewStatus}
                             </span>
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
-                                {booking.location}
+                                Spot {booking.spotNumber}
                             </span>
                             <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {booking.date}
+                                {format(booking.startTime, "MMM d, yyyy")}
                             </span>
                             <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {booking.time}
+                                {format(booking.startTime, "HH:mm")} - {format(booking.endTime, "HH:mm")}
                             </span>
                         </div>
                     </div>
@@ -98,7 +74,7 @@ export default function ClientReservationsPage() {
                 <div className="flex items-center gap-4 self-end md:self-center">
                     <div className="text-right mr-4">
                         <p className="text-sm text-muted-foreground">Total</p>
-                        <p className="font-bold text-lg">${booking.price.toFixed(2)}</p>
+                        <p className="font-bold text-lg">€{booking.totalPrice.toFixed(2)}</p>
                     </div>
                     <Button variant="outline" className="gap-2">
                         <QrCode className="h-4 w-4" />
@@ -126,20 +102,20 @@ export default function ClientReservationsPage() {
                 </TabsList>
 
                 <TabsContent value="active" className="space-y-4">
-                    {reservations.active.map((booking) => (
-                        <ReservationCard key={booking.id} booking={booking} />
+                    {grouped.active.map((booking) => (
+                        <ReservationCard key={booking.id} booking={{ ...booking, viewStatus: "active" }} />
                     ))}
                 </TabsContent>
 
                 <TabsContent value="upcoming" className="space-y-4">
-                    {reservations.upcoming.map((booking) => (
-                        <ReservationCard key={booking.id} booking={booking} />
+                    {grouped.upcoming.map((booking) => (
+                        <ReservationCard key={booking.id} booking={{ ...booking, viewStatus: "upcoming" }} />
                     ))}
                 </TabsContent>
 
                 <TabsContent value="past" className="space-y-4">
-                    {reservations.past.map((booking) => (
-                        <ReservationCard key={booking.id} booking={booking} />
+                    {grouped.past.map((booking) => (
+                        <ReservationCard key={booking.id} booking={{ ...booking, viewStatus: booking.status }} />
                     ))}
                 </TabsContent>
             </Tabs>

@@ -13,6 +13,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/lib/i18n"
+import { supabase } from "@/lib/supabase"
+import { formatDistanceToNow } from "date-fns"
 
 interface UserData {
     id: string
@@ -24,57 +26,42 @@ interface UserData {
     lastActive: string
 }
 
-const mockUsers: UserData[] = [
-    {
-        id: "1",
-        name: "Marie Dupont",
-        email: "marie.dupont@email.com",
-        role: "user",
-        status: "active",
-        joinDate: "2024-01-15",
-        lastActive: "2 hours ago",
-    },
-    {
-        id: "2",
-        name: "Jean Martin",
-        email: "jean.martin@email.com",
-        role: "manager",
-        status: "active",
-        joinDate: "2024-01-10",
-        lastActive: "5 min ago",
-    },
-    {
-        id: "3",
-        name: "Pierre Durand",
-        email: "pierre.durand@email.com",
-        role: "user",
-        status: "suspended",
-        joinDate: "2024-01-05",
-        lastActive: "3 days ago",
-    },
-    {
-        id: "4",
-        name: "Sophie Leroy",
-        email: "sophie.leroy@email.com",
-        role: "manager",
-        status: "pending",
-        joinDate: "2024-01-20",
-        lastActive: "1 day ago",
-    },
-    {
-        id: "5",
-        name: "Lucas Bernard",
-        email: "lucas.bernard@email.com",
-        role: "user",
-        status: "active",
-        joinDate: "2024-01-18",
-        lastActive: "30 min ago",
-    },
-]
-
 export function UsersTable() {
     const { t } = useTranslation()
+    const [users, setUsers] = React.useState<UserData[]>([])
+    const [loading, setLoading] = React.useState(true)
     const [selectedUsers, setSelectedUsers] = React.useState<string[]>([])
+
+    React.useEffect(() => {
+        async function fetchUsers() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(50)
+
+            if (error) {
+                console.error('Failed to fetch users:', error)
+                setUsers([])
+            } else {
+                const mapped: UserData[] = (data || []).map((p: any) => ({
+                    id: p.id,
+                    name: p.full_name || p.email?.split('@')[0] || 'User',
+                    email: p.email || '-',
+                    role: (p.role || 'user').toLowerCase(),
+                    status: p.status?.toLowerCase() || 'active',
+                    joinDate: p.created_at ? new Date(p.created_at).toLocaleDateString() : '-',
+                    lastActive: p.last_sign_in_at 
+                        ? formatDistanceToNow(new Date(p.last_sign_in_at), { addSuffix: true })
+                        : 'Never',
+                }))
+                setUsers(mapped)
+            }
+            setLoading(false)
+        }
+
+        fetchUsers()
+    }, [])
 
     const toggleUser = (id: string) => {
         setSelectedUsers((prev) =>
@@ -83,10 +70,10 @@ export function UsersTable() {
     }
 
     const toggleAll = () => {
-        if (selectedUsers.length === mockUsers.length) {
+        if (selectedUsers.length === users.length) {
             setSelectedUsers([])
         } else {
-            setSelectedUsers(mockUsers.map((u) => u.id))
+            setSelectedUsers(users.map((u) => u.id))
         }
     }
 
@@ -160,7 +147,7 @@ export function UsersTable() {
                             <th className="pb-3 text-left">
                                 <input
                                     type="checkbox"
-                                    checked={selectedUsers.length === mockUsers.length}
+                                    checked={selectedUsers.length === users.length && users.length > 0}
                                     onChange={toggleAll}
                                     className="rounded border-border"
                                 />
@@ -174,7 +161,7 @@ export function UsersTable() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
-                        {mockUsers.map((user, index) => (
+                        {users.map((user, index) => (
                             <motion.tr
                                 key={user.id}
                                 initial={{ opacity: 0, x: -20 }}

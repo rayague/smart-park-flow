@@ -112,7 +112,7 @@ export default function ProprietaireSpotsPage() {
                             ? "border-primary/20 hover:border-primary"
                             : spot.status === "maintenance"
                                 ? "border-yellow-500/20 hover:border-yellow-500"
-                                : "border-transparent bg-secondary/50"
+                                : "border-transparent bg-subtle"
                             }`}
                     >
                         <span className="text-lg font-bold">{spot.name}</span>

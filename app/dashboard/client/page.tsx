@@ -120,10 +120,10 @@ export default function ClientDashboard() {
                             upcomingReservations.map((booking) => (
                                 <div
                                     key={booking.id}
-                                    className="flex items-center justify-between p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                                    className="flex items-center justify-between p-4 rounded-xl bg-subtle bg-subtle-hover transition-colors"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-icon-box text-primary">
                                             <Car className="h-6 w-6" />
                                         </div>
                                         <div>
@@ -155,7 +155,7 @@ export default function ClientDashboard() {
                     transition={{ delay: 0.5 }}
                     className="rounded-2xl glass p-6 flex flex-col justify-center items-center text-center space-y-4"
                 >
-                    <div className="h-20 w-20 rounded-full bg-accent/10 flex items-center justify-center mb-2">
+                    <div className="h-20 w-20 rounded-full bg-accent-box flex items-center justify-center mb-2">
                         <Car className="h-10 w-10 text-accent" />
                     </div>
                     <h3 className="font-serif text-xl font-bold">Add Your Vehicle</h3>

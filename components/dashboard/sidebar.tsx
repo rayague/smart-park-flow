@@ -20,10 +20,22 @@ import {
   CreditCard,
   Bell,
 } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { useUIStore, useAuthStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const userNavItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -54,7 +66,27 @@ const adminNavItems = [
 export function DashboardSidebar() {
   const pathname = usePathname()
   const { isSidebarOpen, toggleSidebar } = useUIStore()
-  const { user } = useAuthStore()
+  const { user, logout } = useAuthStore()
+  const [logoutDialogOpen, setLogoutDialogOpen] = React.useState(false)
+  const router = require("next/navigation").useRouter()
+
+  const handleLogout = async () => {
+    try {
+      setLogoutDialogOpen(false)
+      const { signOut } = await import("@/lib/auth")
+      await signOut()
+      logout()
+      setTimeout(() => {
+        window.location.href = "/"
+      }, 100)
+    } catch (error) {
+      console.error("Logout error:", error)
+      logout()
+      setTimeout(() => {
+        window.location.href = "/"
+      }, 100)
+    }
+  }
 
   const navItems = React.useMemo(() => {
     switch (user?.role) {
@@ -216,6 +248,46 @@ export function DashboardSidebar() {
               )}
             </AnimatePresence>
           </div>
+          
+          <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size={isSidebarOpen ? "default" : "icon"}
+                className={cn(
+                  "mt-2 text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10 cursor-pointer",
+                  isSidebarOpen ? "w-full justify-start gap-3" : "w-full"
+                )}
+              >
+                <LogOut className="h-4 w-4" />
+                <AnimatePresence>
+                  {isSidebarOpen && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                    >
+                      Sign Out
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Sign Out</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to sign out? You will need to sign in again to access your account.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setLogoutDialogOpen(false)}>Cancel</AlertDialogCancel>
+                <Button onClick={handleLogout} variant="destructive" className="cursor-pointer">
+                  Sign Out
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </motion.aside>
     </>

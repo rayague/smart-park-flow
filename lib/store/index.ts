@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { supabase } from '@/lib/supabase'
 
 // Types
 export interface User {
@@ -58,6 +59,32 @@ export interface Reservation {
   isEv: boolean
 }
 
+function mapParkingStatus(status: string | null | undefined): Parking['status'] {
+  switch (status) {
+    case 'MAINTENANCE':
+      return 'maintenance'
+    case 'ACTIVE':
+    default:
+      return 'active'
+  }
+}
+
+function mapReservationStatus(
+  status: string | null | undefined
+): Reservation['status'] {
+  switch (status) {
+    case 'CANCELLED':
+      return 'cancelled'
+    case 'COMPLETED':
+      return 'completed'
+    case 'PAID':
+      return 'active'
+    case 'PENDING':
+    default:
+      return 'pending'
+  }
+}
+
 export interface Notification {
   id: string
   type: 'info' | 'success' | 'warning' | 'error'
@@ -73,9 +100,13 @@ interface AuthState {
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
+  initialized: boolean
   login: (user: User, token: string) => void
   logout: () => void
   setLoading: (loading: boolean) => void
+  setInitialized: (initialized: boolean) => void
+  setSession: (user: User, token: string) => void
+  clearSession: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -85,6 +116,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: false,
+      initialized: false,
       login: (user, token) => {
         if (typeof window !== 'undefined') {
           localStorage.setItem('smartpark_token', token)
@@ -98,6 +130,19 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, token: null, isAuthenticated: false })
       },
       setLoading: (loading) => set({ isLoading: loading }),
+      setInitialized: (initialized) => set({ initialized }),
+      setSession: (user, token) => {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('smartpark_token', token)
+        }
+        set({ user, token, isAuthenticated: true })
+      },
+      clearSession: () => {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('smartpark_token')
+        }
+        set({ user: null, token: null, isAuthenticated: false })
+      },
     }),
     {
       name: 'auth-storage',
@@ -134,9 +179,43 @@ export const useParkingStore = create<ParkingState>((set) => ({
   setParkings: (parkings) => set({ parkings }),
   fetchParkings: async () => {
     try {
-      const { apiRequest } = await import('@/lib/api');
-      const data = await apiRequest<Parking[]>('/parkings');
-      set({ parkings: data });
+      const { user } = useAuthStore.getState()
+
+      let query = supabase
+        .from('parkings')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      // Role-aware filtering
+      if (user?.role === 'manager') {
+        query = query.eq('manager_id', user.id)
+      }
+
+      const { data, error } = await query
+      if (error) throw error
+
+      const mapped: Parking[] = (data || []).map((p) => ({
+        id: p.id,
+        name: p.name,
+        address: p.address,
+        city: p.city,
+        latitude: p.latitude ?? 0,
+        longitude: p.longitude ?? 0,
+        totalSpots: p.total_spots,
+        availableSpots: p.available_spots,
+        pricePerHour: p.price_per_hour,
+        hasEvCharging: !!p.has_ev_charging,
+        rating: p.rating ?? 0,
+        images: p.images ?? [],
+        amenities: p.amenities ?? [],
+        openingHours: {
+          open: p.opening_time ?? '00:00',
+          close: p.closing_time ?? '23:59',
+        },
+        status: mapParkingStatus(p.status),
+      }))
+
+      set({ parkings: mapped })
     } catch (error) {
       console.error('Failed to fetch parkings:', error);
     }
@@ -165,15 +244,67 @@ export const useReservationStore = create<ReservationState>((set) => ({
     set((state) => ({ reservations: [...state.reservations, reservation] })),
   fetchReservations: async () => {
     try {
-      const { apiRequest } = await import('@/lib/api');
-      const data = await apiRequest<Reservation[]>('/reservations');
-      set({
-        reservations: data.map(r => ({
-          ...r,
-          startTime: new Date(r.startTime),
-          endTime: new Date(r.endTime)
-        }))
-      });
+      const { user } = useAuthStore.getState()
+      if (!user) {
+        set({ reservations: [] })
+        return
+      }
+
+      let reservationRows: any[] = []
+
+      if (user.role === 'admin') {
+        const { data, error } = await supabase
+          .from('reservations')
+          .select('*')
+          .order('created_at', { ascending: false })
+        if (error) throw error
+        reservationRows = data || []
+      } else if (user.role === 'manager') {
+        const { data: parkings, error: parkErr } = await supabase
+          .from('parkings')
+          .select('id')
+          .eq('manager_id', user.id)
+        if (parkErr) throw parkErr
+
+        const parkingIds = (parkings || []).map((p) => p.id)
+        if (parkingIds.length === 0) {
+          set({ reservations: [] })
+          return
+        }
+
+        const { data, error } = await supabase
+          .from('reservations')
+          .select('*')
+          .in('parking_id', parkingIds)
+          .order('created_at', { ascending: false })
+        if (error) throw error
+        reservationRows = data || []
+      } else {
+        const { data, error } = await supabase
+          .from('reservations')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+        if (error) throw error
+        reservationRows = data || []
+      }
+
+      const mapped: Reservation[] = reservationRows.map((r) => ({
+        id: r.id,
+        parkingId: r.parking_id,
+        parkingName: r.parking_name,
+        spotId: r.spot_id,
+        spotNumber: r.spot_number,
+        userId: r.user_id,
+        startTime: new Date(r.start_time),
+        endTime: new Date(r.end_time),
+        status: mapReservationStatus(r.status),
+        totalPrice: r.total_price,
+        vehiclePlate: r.vehicle_plate || '',
+        isEv: !!r.is_ev,
+      }))
+
+      set({ reservations: mapped })
     } catch (error) {
       console.error('Failed to fetch reservations:', error);
     }
@@ -201,6 +332,8 @@ interface UIState {
   authModalView: 'login' | 'register'
   isLoading: boolean
   notifications: Notification[]
+  setNotifications: (notifications: Notification[]) => void
+  fetchNotifications: () => Promise<void>
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
   openAuthModal: (view: 'login' | 'register') => void
@@ -217,6 +350,48 @@ export const useUIStore = create<UIState>((set) => ({
   authModalView: 'login',
   isLoading: false,
   notifications: [],
+  setNotifications: (notifications) => set({ notifications }),
+  fetchNotifications: async () => {
+    try {
+      const { user } = useAuthStore.getState()
+      if (!user) {
+        set({ notifications: [] })
+        return
+      }
+
+      let query: any = supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      // Basic role-aware filtering when the table supports it
+      if (user.role !== 'admin') {
+        query = query.eq('user_id', user.id)
+      }
+
+      const { data, error } = await query
+      if (error) {
+        // Table may not exist yet: fail gracefully without mock data
+        set({ notifications: [] })
+        return
+      }
+
+      const mapped: Notification[] = (data || []).map((n: any) => ({
+        id: n.id,
+        type: (n.type || 'info') as Notification['type'],
+        title: n.title || 'Notification',
+        message: n.message || '',
+        read: !!n.read,
+        createdAt: n.created_at ? new Date(n.created_at) : new Date(),
+      }))
+
+      set({ notifications: mapped })
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error)
+      set({ notifications: [] })
+    }
+  },
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   setSidebarOpen: (open) => set({ isSidebarOpen: open }),
   openAuthModal: (view) => set({ isAuthModalOpen: true, authModalView: view }),
@@ -234,12 +409,21 @@ export const useUIStore = create<UIState>((set) => ({
         ...state.notifications,
       ],
     })),
-  markNotificationRead: (id) =>
+  markNotificationRead: (id) => {
     set((state) => ({
       notifications: state.notifications.map((n) =>
         n.id === id ? { ...n, read: true } : n
       ),
-    })),
+    }))
+
+    // Best-effort persistence (ignore failures)
+    supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('id', id)
+      .then(() => undefined)
+      .catch(() => undefined)
+  },
   clearNotifications: () => set({ notifications: [] }),
 }))
 

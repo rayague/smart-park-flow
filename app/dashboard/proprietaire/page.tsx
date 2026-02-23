@@ -126,7 +126,7 @@ export default function ProprietaireDashboard() {
                                 >
                                     <td className="py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-icon-box">
                                                 <span className="text-sm font-medium">
                                                     {(booking as any).customerName?.charAt(0) || "U"}
                                                 </span>
@@ -141,7 +141,7 @@ export default function ProprietaireDashboard() {
                                         </div>
                                     </td>
                                     <td className="py-4">
-                                        <span className="rounded-lg bg-secondary px-2 py-1 text-sm font-medium">
+                                        <span className="rounded-lg bg-icon-box px-2 py-1 text-sm font-medium">
                                             {booking.spotNumber}
                                         </span>
                                     </td>

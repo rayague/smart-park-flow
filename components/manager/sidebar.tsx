@@ -23,47 +23,46 @@ import { useTranslation } from "@/lib/i18n"
 export function ManagerSidebar() {
     const pathname = usePathname()
     const [isCollapsed, setIsCollapsed] = React.useState(false)
+    const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false)
     const { user, logout } = useAuthStore()
     const { t } = useTranslation()
-    const router = require("next/navigation").useRouter()
 
     const handleLogout = async () => {
+        setShowLogoutConfirm(false)
         try {
             const { signOut } = await import("@/lib/auth")
             await signOut()
-            logout()
-            router.push("/")
         } catch (error) {
-            console.error("Logout error:", error)
-            logout()
-            router.push("/")
+            console.error("SignOut error:", error)
         }
+        logout()
+        window.location.href = "/"
     }
 
     const navItems = [
         {
-            href: "/dashboard/proprietaire",
+            href: "/dashboard/manager",
             label: t.managerDashboard.navigation.overview,
             icon: LayoutDashboard,
             exact: true
         },
         {
-            href: "/dashboard/proprietaire/parkings",
+            href: "/dashboard/manager/parkings",
             label: t.managerDashboard.navigation.parkings,
             icon: ParkingCircle
         },
         {
-            href: "/dashboard/proprietaire/spots",
+            href: "/dashboard/manager/spots",
             label: t.managerDashboard.navigation.spots,
             icon: MapPin
         },
         {
-            href: "/dashboard/proprietaire/analytics",
+            href: "/dashboard/manager/analytics",
             label: t.managerDashboard.navigation.analytics,
             icon: BarChart3
         },
         {
-            href: "/dashboard/proprietaire/settings",
+            href: "/dashboard/manager/settings",
             label: t.managerDashboard.navigation.settings,
             icon: Settings
         },
@@ -76,6 +75,7 @@ export function ManagerSidebar() {
     }
 
     return (
+        <>
         <motion.aside
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -86,7 +86,7 @@ export function ManagerSidebar() {
         >
             {/* Logo */}
             <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
-                <Link href="/dashboard/proprietaire" className="flex items-center gap-2">
+                <Link href="/dashboard/manager" className="flex items-center gap-2">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent">
                         <Car className="h-5 w-5 text-white" />
                     </div>
@@ -193,9 +193,9 @@ export function ManagerSidebar() {
                 <Button
                     variant="ghost"
                     size={isCollapsed ? "icon" : "default"}
-                    onClick={handleLogout}
+                    onClick={() => setShowLogoutConfirm(true)}
                     className={cn(
-                        "mt-2 text-muted-foreground hover:text-destructive",
+                        "mt-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer",
                         isCollapsed ? "w-full" : "w-full justify-start gap-3"
                     )}
                 >
@@ -214,5 +214,32 @@ export function ManagerSidebar() {
                 </Button>
             </div>
         </motion.aside>
-    )
+
+        {/* Simple Logout Modal */}
+        {showLogoutConfirm && (
+            <div 
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                onClick={() => setShowLogoutConfirm(false)}
+            >
+                <div 
+                    className="bg-background rounded-lg border p-6 shadow-lg w-full max-w-sm mx-4"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <h2 className="text-lg font-semibold mb-2">Confirm Sign Out</h2>
+                    <p className="text-muted-foreground text-sm mb-6">
+                        Are you sure you want to sign out?
+                    </p>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            Sign Out
+                        </a>
+                    </Button>
+                </div>
+            </div>
+        </div>
+    )}
+    </>
+)
 }

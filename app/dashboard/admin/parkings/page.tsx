@@ -7,7 +7,6 @@ import {
     MapPin,
     Building2,
     Car,
-    Zap,
     MoreHorizontal,
     Table as TableIcon,
     LayoutGrid
@@ -15,19 +14,62 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useTranslation } from "@/lib/i18n"
+import { supabase } from "@/lib/supabase"
+import { useReservationStore } from "@/lib/store"
 
-// Global parkings mock
-const allParkings = [
-    { id: "1", name: "Central Plazza", manager: "Jean Martin", location: "Paris", status: "active", spots: 150, revenue: 12450 },
-    { id: "2", name: "Riviera Smart", manager: "Sophie Leroy", location: "Nice", status: "active", spots: 200, revenue: 18900 },
-    { id: "3", name: "Station Under", manager: "Jean Martin", location: "Montpellier", status: "maintenance", spots: 100, revenue: 5600 },
-    { id: "4", name: "Airport Prem", manager: "Lucas Bernard", location: "Paris", status: "active", spots: 500, revenue: 45200 },
-    { id: "5", name: "Lyon Hub", manager: "Marie Dumont", location: "Lyon", status: "active", spots: 300, revenue: 22100 },
-]
+interface ParkingData {
+    id: string
+    name: string
+    manager: string
+    location: string
+    status: string
+    spots: number
+    revenue: number
+}
 
 export default function AdminParkingsPage() {
     const { t } = useTranslation()
+    const { reservations } = useReservationStore()
+    const [parkings, setParkings] = React.useState<ParkingData[]>([])
+    const [loading, setLoading] = React.useState(true)
     const [viewMode, setViewMode] = React.useState<"grid" | "table">("table")
+    const [searchQuery, setSearchQuery] = React.useState("")
+
+    React.useEffect(() => {
+        async function fetchParkings() {
+            const { data, error } = await supabase
+                .from('parkings')
+                .select('*, profiles:owner_id(full_name)')
+                .order('created_at', { ascending: false })
+
+            if (error) {
+                console.error('Failed to fetch parkings:', error)
+                setParkings([])
+            } else {
+                const mapped: ParkingData[] = (data || []).map((p: any) => ({
+                    id: p.id,
+                    name: p.name,
+                    manager: p.profiles?.full_name || 'Unknown',
+                    location: `${p.city || ''}${p.address ? `, ${p.address}` : ''}`,
+                    status: p.status?.toLowerCase() || 'active',
+                    spots: p.total_spots || 0,
+                    revenue: reservations
+                        .filter((r) => r.parkingId === p.id)
+                        .reduce((acc, r) => acc + r.totalPrice, 0),
+                }))
+                setParkings(mapped)
+            }
+            setLoading(false)
+        }
+
+        fetchParkings()
+    }, [reservations])
+
+    const filteredParkings = parkings.filter(p =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.manager.toLowerCase().includes(searchQuery.toLowerCase())
+    )
 
     return (
         <div className="space-y-6">
@@ -72,7 +114,12 @@ export default function AdminParkingsPage() {
             >
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search all parkings..." className="pl-9 glass" />
+                    <Input 
+                        placeholder="Search all parkings..." 
+                        className="pl-9 glass"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                 </div>
                 <Button variant="outline" className="glass">Advanced Filters</Button>
             </motion.div>
@@ -96,11 +143,16 @@ export default function AdminParkingsPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/50">
-                            {allParkings.map((parking, i) => (
+                            {loading ? (
+                                <tr><td colSpan={7} className="py-8 text-center text-muted-foreground">Loading...</td></tr>
+                            ) : filteredParkings.length === 0 ? (
+                                <tr><td colSpan={7} className="py-8 text-center text-muted-foreground">No parkings found</td></tr>
+                            ) : (
+                                filteredParkings.map((parking, i) => (
                                 <tr key={parking.id} className="group hover:bg-primary/5 transition-colors">
                                     <td className="py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                            <div className="h-8 w-8 rounded-lg bg-primary-box flex items-center justify-center text-primary">
                                                 <Car className="h-4 w-4" />
                                             </div>
                                             <span className="font-medium">{parking.name}</span>
@@ -138,7 +190,12 @@ export default function AdminParkingsPage() {
                 </motion.div>
             ) : (
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {allParkings.map((parking, i) => (
+                    {loading ? (
+                        <div className="col-span-full py-8 text-center text-muted-foreground">Loading...</div>
+                    ) : filteredParkings.length === 0 ? (
+                        <div className="col-span-full py-8 text-center text-muted-foreground">No parkings found</div>
+                    ) : (
+                        filteredParkings.map((parking, i) => (
                         <motion.div
                             key={parking.id}
                             initial={{ opacity: 0, scale: 0.95 }}
@@ -147,7 +204,7 @@ export default function AdminParkingsPage() {
                             className="rounded-2xl glass p-6 card-hover"
                         >
                             <div className="flex justify-between items-start mb-4">
-                                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                <div className="h-10 w-10 rounded-xl bg-primary-box flex items-center justify-center text-primary">
                                     <Car className="h-5 w-5" />
                                 </div>
                                 <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${parking.status === "active" ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"

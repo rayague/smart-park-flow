@@ -10,7 +10,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useTranslation } from "@/lib/i18n"
 import { useAuthStore } from "@/lib/store"
 import { useRouter } from "next/navigation"
-import { apiRequest } from "@/lib/api"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function LoginPage() {
@@ -43,7 +42,8 @@ export default function LoginPage() {
                 id: user.id,
                 email: user.email!,
                 name: profile.name,
-                role: profile.role.toLowerCase() as 'user' | 'manager' | 'admin'
+                role: profile.role.toLowerCase() as 'user' | 'manager' | 'admin',
+                createdAt: new Date(profile.created_at),
             }, session.access_token)
 
             toast({
@@ -54,7 +54,7 @@ export default function LoginPage() {
             // Redirect based on role
             setTimeout(() => {
                 if (profile.role === 'ADMIN') router.push("/dashboard/admin")
-                else if (profile.role === 'MANAGER') router.push("/dashboard/proprietaire")
+                else if (profile.role === 'MANAGER') router.push("/dashboard/manager")
                 else router.push("/dashboard/client")
             }, 500)
 
@@ -96,7 +96,7 @@ export default function LoginPage() {
                                 <Input
                                     type="email"
                                     placeholder="hello@example.com"
-                                    className="pl-10 h-12"
+                                    className="pl-10 h-12 bg-background border-border/50 focus:border-primary"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -111,7 +111,7 @@ export default function LoginPage() {
                                 <Input
                                     type="password"
                                     placeholder="••••••••"
-                                    className="pl-10 h-12"
+                                    className="pl-10 h-12 bg-background border-border/50 focus:border-primary"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -138,21 +138,7 @@ export default function LoginPage() {
                         </Button>
                     </form>
 
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-border"></div>
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <Button variant="outline" className="h-11">Google</Button>
-                        <Button variant="outline" className="h-11">Apple</Button>
-                    </div>
-
-                    <p className="text-center text-sm text-muted-foreground">
+                    <p className="text-center text-sm text-muted-foreground pt-4">
                         Don't have an account?{" "}
                         <Link href="/register" className="text-primary hover:underline font-medium">
                             Sign up

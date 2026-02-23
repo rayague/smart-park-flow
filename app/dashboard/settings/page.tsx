@@ -79,7 +79,7 @@ export default function SettingsPage() {
             icon: CreditCard,
             content: (
                 <div className="space-y-4">
-                    <div className="rounded-xl border border-border p-4 flex items-center justify-between bg-secondary/20">
+                    <div className="rounded-xl border border-border p-4 flex items-center justify-between bg-subtle">
                         <div className="flex items-center gap-3">
                             <div className="h-8 w-12 rounded bg-white flex items-center justify-center">
                                 <span className="text-xs font-bold text-black">VISA</span>
@@ -117,7 +117,7 @@ export default function SettingsPage() {
                         className="rounded-2xl glass p-8"
                     >
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-box text-primary">
                                 <section.icon className="h-5 w-5" />
                             </div>
                             <h2 className="font-serif text-xl font-semibold">{section.title}</h2>

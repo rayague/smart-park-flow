@@ -5,18 +5,19 @@ import { motion } from "framer-motion"
 import { MapPin, Star, Zap, Navigation, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { mockParkings } from "@/lib/data/mock-data"
 import type { Parking } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 
 interface ParkingMapProps {
+  parkings?: Parking[]
   onSelectParking?: (parking: Parking) => void
   selectedParking?: Parking | null
   className?: string
 }
 
 export function ParkingMap({ 
+  parkings = [],
   onSelectParking, 
   selectedParking,
   className 
@@ -26,12 +27,12 @@ export function ParkingMap({
 
   // Simulated marker positions based on parking data
   const markers = React.useMemo(() => {
-    return mockParkings.map((parking) => ({
+    return parkings.map((parking) => ({
       ...parking,
       x: ((parking.longitude - 2.2) / 0.2) * 100,
       y: ((48.9 - parking.latitude) / 0.05) * 100,
     }))
-  }, [])
+  }, [parkings])
 
   return (
     <div className={cn("relative overflow-hidden rounded-2xl glass", className)}>

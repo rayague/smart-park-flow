@@ -13,6 +13,35 @@ export async function signIn(email: string, password: string) {
     return data;
 }
 
+export async function upsertProfile(profile: {
+    id: string;
+    email: string;
+    name: string;
+    phone?: string | null;
+    role?: 'USER' | 'MANAGER' | 'ADMIN';
+    avatar_url?: string | null;
+}) {
+    const { data, error } = await supabase
+        .from('profiles')
+        .upsert(
+            {
+                id: profile.id,
+                email: profile.email,
+                name: profile.name,
+                phone: profile.phone ?? null,
+                role: profile.role ?? 'USER',
+                avatar_url: profile.avatar_url ?? null,
+                updated_at: new Date().toISOString(),
+            } as any,
+            { onConflict: 'id' }
+        )
+        .select('*')
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
 /**
  * Sign up a new user
  */

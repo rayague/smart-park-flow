@@ -6,26 +6,61 @@ import { MapPin, Star, ArrowRight, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useTranslation } from "@/lib/i18n"
+import { useAuthStore } from "@/lib/store"
+import { supabase } from "@/lib/supabase"
 
 export default function FavoritesPage() {
     const { t } = useTranslation()
 
-    const favorites = [
-        {
-            id: "1",
-            name: "Central Station Parking",
-            location: "Downtown, 1.2km away",
-            rating: 4.8,
-            image: "/images/parking-1.jpg",
-        },
-        {
-            id: "3",
-            name: "Tech Hub EV Center",
-            location: "Business Park, 0.8km away",
-            rating: 4.9,
-            image: "/images/parking-3.jpg",
+    const { user } = useAuthStore()
+    const [favorites, setFavorites] = React.useState<
+        Array<{
+            id: string
+            parkingId: string
+            name: string
+            location: string
+            rating: number
+            image: string | null
+        }>
+    >([])
+
+    React.useEffect(() => {
+        if (!user) return
+
+        let cancelled = false
+        ;(async () => {
+            const { data, error } = await supabase
+                .from('favorites')
+                .select('id, parking_id, parkings:parkings(*)')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+
+            if (cancelled) return
+            if (error) {
+                console.error('Failed to load favorites:', error)
+                setFavorites([])
+                return
+            }
+
+            const mapped = (data || []).map((f: any) => {
+                const p = f.parkings
+                return {
+                    id: f.id,
+                    parkingId: f.parking_id,
+                    name: p?.name || 'Parking',
+                    location: `${p?.city || ''}${p?.address ? `, ${p.address}` : ''}`,
+                    rating: p?.rating ?? 0,
+                    image: (p?.images && p.images[0]) || null,
+                }
+            })
+
+            setFavorites(mapped)
+        })()
+
+        return () => {
+            cancelled = true
         }
-    ]
+    }, [user])
 
     return (
         <div className="space-y-6">
@@ -49,9 +84,9 @@ export default function FavoritesPage() {
                             </Button>
                         </div>
 
-                        <div className="h-40 bg-secondary/50 relative">
+                        <div className="h-40 bg-subtle relative">
                             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                                <MapPin className="h-10 w-10 opacity-20" />
+                                <MapPin className="h-10 w-10 opacity-40" />
                             </div>
                         </div>
 
@@ -72,7 +107,7 @@ export default function FavoritesPage() {
                                     <span className="font-medium">{parking.rating}</span>
                                 </div>
 
-                                <Link href={`/booking/${parking.id}`}>
+                                <Link href={`/booking/${parking.parkingId}`}>
                                     <Button size="sm" className="gap-2">
                                         Book Now
                                         <ArrowRight className="h-4 w-4" />
@@ -83,14 +118,20 @@ export default function FavoritesPage() {
                     </motion.div>
                 ))}
 
+                {favorites.length === 0 && (
+                    <div className="sm:col-span-2 lg:col-span-3 rounded-2xl glass p-10 text-center text-muted-foreground">
+                        No favorites yet.
+                    </div>
+                )}
+
                 {/* Add New Placeholder */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-secondary/20 p-6 text-center hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer"
+                    className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-subtle p-6 text-center hover:border-primary/50 hover:bg-icon-box transition-all cursor-pointer"
                 >
-                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-icon-box">
                         <Star className="h-8 w-8 text-muted-foreground" />
                     </div>
                     <h3 className="font-semibold text-lg">Add Favorites</h3>

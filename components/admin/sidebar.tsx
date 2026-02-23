@@ -15,7 +15,7 @@ import {
     ChevronRight,
     LogOut,
     Shield,
-    Car
+    X
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -25,21 +25,20 @@ import { useTranslation } from "@/lib/i18n"
 export function AdminSidebar() {
     const pathname = usePathname()
     const [isCollapsed, setIsCollapsed] = React.useState(false)
+    const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false)
     const { user, logout } = useAuthStore()
     const { t } = useTranslation()
-    const router = require("next/navigation").useRouter()
 
     const handleLogout = async () => {
+        setShowLogoutConfirm(false)
         try {
             const { signOut } = await import("@/lib/auth")
             await signOut()
-            logout()
-            router.push("/")
         } catch (error) {
-            console.error("Logout error:", error)
-            logout()
-            router.push("/")
+            console.error("SignOut error:", error)
         }
+        logout()
+        window.location.href = "/"
     }
 
     const navItems = [
@@ -83,14 +82,15 @@ export function AdminSidebar() {
     }
 
     return (
-        <motion.aside
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            className={cn(
-                "fixed left-0 top-0 z-40 flex h-screen flex-col glass-strong border-r border-border/50 transition-all duration-300",
-                isCollapsed ? "w-[72px]" : "w-64"
-            )}
-        >
+        <>
+            <motion.aside
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                className={cn(
+                    "fixed left-0 top-0 z-40 flex h-screen flex-col glass-strong border-r border-border/50 transition-all duration-300",
+                    isCollapsed ? "w-[72px]" : "w-64"
+                )}
+            >
             {/* Logo */}
             <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
                 <Link href="/dashboard/admin" className="flex items-center gap-2">
@@ -200,29 +200,67 @@ export function AdminSidebar() {
                     </AnimatePresence>
                 </div>
 
-                <Button
-                    variant="ghost"
-                    size={isCollapsed ? "icon" : "default"}
-                    onClick={handleLogout}
-                    className={cn(
-                        "mt-2 text-muted-foreground hover:text-destructive",
-                        isCollapsed ? "w-full" : "w-full justify-start gap-3"
-                    )}
-                >
-                    <LogOut className="h-4 w-4" />
-                    <AnimatePresence>
-                        {!isCollapsed && (
-                            <motion.span
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -10 }}
-                            >
-                                {t.common.signOut}
-                            </motion.span>
+                    <Button
+                        variant="ghost"
+                        size={isCollapsed ? "icon" : "default"}
+                        onClick={() => setShowLogoutConfirm(true)}
+                        className={cn(
+                            "mt-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer",
+                            isCollapsed ? "w-full" : "w-full justify-start gap-3"
                         )}
-                    </AnimatePresence>
-                </Button>
-            </div>
-        </motion.aside>
+                    >
+                        <LogOut className="h-4 w-4" />
+                        <AnimatePresence>
+                            {!isCollapsed && (
+                                <motion.span
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                >
+                                    {t.common.signOut}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </Button>
+                </div>
+            </motion.aside>
+
+            {/* Simple Logout Modal */}
+            {showLogoutConfirm && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                    onClick={() => setShowLogoutConfirm(false)}
+                >
+                    <div 
+                        className="bg-background rounded-lg border p-6 shadow-lg w-full max-w-sm mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="text-lg font-semibold mb-2">Confirm Sign Out</h2>
+                        <p className="text-muted-foreground text-sm mb-6">
+                            Are you sure you want to sign out?
+                        </p>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowLogoutConfirm(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={handleLogout}
+                                asChild
+                            >
+                                <a href="/" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
+                                    Sign Out
+                                </a>
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     )
 }

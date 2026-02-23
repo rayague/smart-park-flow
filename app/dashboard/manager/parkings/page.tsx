@@ -25,58 +25,19 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTranslation } from "@/lib/i18n"
-
-// Mock parkings data
-const parkings = [
-    {
-        id: "1",
-        name: "Central Plazza Parking",
-        address: "123 Rue de la Paix, Paris",
-        totalSpots: 150,
-        occupiedSpots: 84,
-        evSpots: 20,
-        price: 3.50,
-        status: "active",
-        revenue: 12450.80
-    },
-    {
-        id: "2",
-        name: "Riviera Smart Park",
-        address: "45 Promenade des Anglais, Nice",
-        totalSpots: 200,
-        occupiedSpots: 120,
-        evSpots: 45,
-        price: 4.20,
-        status: "active",
-        revenue: 18900.50
-    },
-    {
-        id: "3",
-        name: "Underground Station",
-        address: "8 Place de la Comédie, Montpellier",
-        totalSpots: 100,
-        occupiedSpots: 10,
-        evSpots: 10,
-        price: 2.80,
-        status: "maintenance",
-        revenue: 5600.00
-    },
-    {
-        id: "4",
-        name: "Airport Premium",
-        address: "Terminal 1, Orly",
-        totalSpots: 500,
-        occupiedSpots: 430,
-        evSpots: 100,
-        price: 6.50,
-        status: "active",
-        revenue: 45200.00
-    }
-]
+import { useParkingStore, useReservationStore } from "@/lib/store"
 
 export default function ManagerParkingsPage() {
     const { t } = useTranslation()
     const [searchQuery, setSearchQuery] = React.useState("")
+
+    const { parkings, fetchParkings } = useParkingStore()
+    const { reservations, fetchReservations } = useReservationStore()
+
+    React.useEffect(() => {
+        fetchParkings()
+        fetchReservations()
+    }, [fetchParkings, fetchReservations])
 
     const filteredParkings = parkings.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -135,7 +96,7 @@ export default function ManagerParkingsPage() {
                     >
                         <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
                             {/* Parking Icon/Thumbnail Placeholder */}
-                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary-box text-primary">
                                 <Car className="h-8 w-8" />
                             </div>
 
@@ -157,7 +118,7 @@ export default function ManagerParkingsPage() {
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <Zap className="h-3.5 w-3.5 text-blue-500" />
-                                        {parking.evSpots} EV Spots
+                                        {parking.hasEvCharging ? "EV" : "No EV"}
                                     </div>
                                 </div>
                             </div>
@@ -167,13 +128,18 @@ export default function ManagerParkingsPage() {
                                 <div className="text-center">
                                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Occupancy</p>
                                     <p className="text-lg font-bold">
-                                        {Math.round((parking.occupiedSpots / parking.totalSpots) * 100)}%
+                                        {parking.totalSpots > 0
+                                            ? Math.round(((parking.totalSpots - parking.availableSpots) / parking.totalSpots) * 100)
+                                            : 0}%
                                     </p>
                                 </div>
                                 <div className="text-center">
                                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Revenue</p>
                                     <p className="text-lg font-bold">
-                                        €{parking.revenue.toLocaleString()}
+                                        €{reservations
+                                            .filter((r) => r.parkingId === parking.id)
+                                            .reduce((acc, r) => acc + r.totalPrice, 0)
+                                            .toLocaleString()}
                                     </p>
                                 </div>
                             </div>
@@ -210,11 +176,15 @@ export default function ManagerParkingsPage() {
                         <div className="mt-6 h-1 w-full overflow-hidden rounded-full bg-secondary">
                             <motion.div
                                 initial={{ width: 0 }}
-                                animate={{ width: `${(parking.occupiedSpots / parking.totalSpots) * 100}%` }}
+                                animate={{
+                                    width: `${parking.totalSpots > 0
+                                        ? ((parking.totalSpots - parking.availableSpots) / parking.totalSpots) * 100
+                                        : 0}%`,
+                                }}
                                 transition={{ duration: 1, delay: 0.5 + index * 0.1 }}
-                                className={`h-full ${(parking.occupiedSpots / parking.totalSpots) > 0.9
+                                className={`h-full ${parking.totalSpots > 0 && ((parking.totalSpots - parking.availableSpots) / parking.totalSpots) > 0.9
                                         ? "bg-red-500"
-                                        : (parking.occupiedSpots / parking.totalSpots) > 0.7
+                                        : parking.totalSpots > 0 && ((parking.totalSpots - parking.availableSpots) / parking.totalSpots) > 0.7
                                             ? "bg-yellow-500"
                                             : "bg-primary"
                                     }`}
