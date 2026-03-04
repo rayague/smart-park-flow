@@ -19,6 +19,17 @@ const languages: { code: Language; name: string; flag: string }[] = [
 
 export function LanguageToggle() {
     const { language, setLanguage } = useI18nStore()
+    const [mounted, setMounted] = React.useState(false)
+
+    React.useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) return (
+        <Button variant="ghost" size="icon" className="relative cursor-wait">
+            <Globe className="h-[1.2rem] w-[1.2rem] opacity-50" />
+        </Button>
+    )
 
     const currentLanguage = languages.find((l) => l.code === language) || languages[0]
 
@@ -57,8 +68,8 @@ export function LanguageToggle() {
                             key={lang.code}
                             onClick={() => setLanguage(lang.code)}
                             className={`flex items-center gap-3 cursor-pointer transition-colors ${language === lang.code
-                                    ? "bg-primary/10 text-primary"
-                                    : "hover:bg-secondary"
+                                ? "bg-primary/10 text-primary"
+                                : "hover:bg-secondary"
                                 }`}
                         >
                             <motion.span

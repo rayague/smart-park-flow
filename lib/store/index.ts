@@ -107,6 +107,7 @@ interface AuthState {
   setInitialized: (initialized: boolean) => void
   setSession: (user: User, token: string) => void
   clearSession: () => void
+  updateUser: (updates: Partial<User>) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -143,6 +144,11 @@ export const useAuthStore = create<AuthState>()(
         }
         set({ user: null, token: null, isAuthenticated: false })
       },
+      updateUser: (updates) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updates } : null
+        }))
+      },
     }),
     {
       name: 'auth-storage',
@@ -151,6 +157,16 @@ export const useAuthStore = create<AuthState>()(
 )
 
 // Parking Store
+export type NewParkingData = {
+  name: string
+  address: string
+  city: string
+  totalSpots: number
+  pricePerHour: number
+  hasEvCharging: boolean
+  openingHours: { open: string; close: string }
+}
+
 interface ParkingState {
   parkings: Parking[]
   selectedParking: Parking | null
@@ -162,6 +178,8 @@ interface ParkingState {
   }
   setParkings: (parkings: Parking[]) => void
   fetchParkings: () => Promise<void>
+  createParking: (data: NewParkingData) => Promise<void>
+  updateParking: (id: string, data: Partial<NewParkingData>) => Promise<void>
   selectParking: (parking: Parking | null) => void
   setSearchQuery: (query: string) => void
   setFilters: (filters: Partial<ParkingState['filters']>) => void
@@ -216,10 +234,102 @@ export const useParkingStore = create<ParkingState>((set) => ({
       }))
 
       set({ parkings: mapped })
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.name === 'AbortError') return
       console.error('Failed to fetch parkings:', error);
     }
   },
+  createParking: async (data) => {
+    const { user } = useAuthStore.getState()
+    if (!user) throw new Error('Not authenticated')
+
+    const response = await fetch('/api/parkings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...data,
+        managerId: user.id,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Failed to create parking' }))
+      throw new Error(errorData.message || 'Failed to create parking')
+    }
+
+    const created = await response.json()
+
+    const newParking: Parking = {
+      id: created.id,
+      name: created.name,
+      address: created.address,
+      city: created.city,
+      latitude: created.latitude ?? 0,
+      longitude: created.longitude ?? 0,
+      totalSpots: created.total_spots,
+      availableSpots: created.available_spots,
+      pricePerHour: created.price_per_hour,
+      hasEvCharging: !!created.has_ev_charging,
+      rating: created.rating ?? 0,
+      images: created.images ?? [],
+      amenities: created.amenities ?? [],
+      openingHours: {
+        open: created.opening_time ?? '00:00',
+        close: created.closing_time ?? '23:59',
+      },
+      status: mapParkingStatus(created.status),
+    }
+
+    set((state) => ({ parkings: [newParking, ...state.parkings] }))
+  },
+
+  updateParking: async (id, data) => {
+    const response = await fetch('/api/parkings', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id,
+        ...data,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Failed to update parking' }))
+      throw new Error(errorData.message || 'Failed to update parking')
+    }
+
+    const updated = await response.json()
+
+    const updatedParking: Parking = {
+      id: updated.id,
+      name: updated.name,
+      address: updated.address,
+      city: updated.city,
+      latitude: updated.latitude ?? 0,
+      longitude: updated.longitude ?? 0,
+      totalSpots: updated.total_spots,
+      availableSpots: updated.available_spots,
+      pricePerHour: updated.price_per_hour,
+      hasEvCharging: !!updated.has_ev_charging,
+      rating: updated.rating ?? 0,
+      images: updated.images ?? [],
+      amenities: updated.amenities ?? [],
+      openingHours: {
+        open: updated.opening_time ?? '00:00',
+        close: updated.closing_time ?? '23:59',
+      },
+      status: mapParkingStatus(updated.status),
+    }
+
+    set((state) => ({
+      parkings: state.parkings.map((p) => (p.id === id ? updatedParking : p)),
+    }))
+  },
+
   selectParking: (parking) => set({ selectedParking: parking }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setFilters: (filters) =>
@@ -305,7 +415,8 @@ export const useReservationStore = create<ReservationState>((set) => ({
       }))
 
       set({ reservations: mapped })
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.name === 'AbortError') return
       console.error('Failed to fetch reservations:', error);
     }
   },
@@ -419,10 +530,9 @@ export const useUIStore = create<UIState>((set) => ({
     // Best-effort persistence (ignore failures)
     supabase
       .from('notifications')
-      .update({ read: true })
+      .update({ is_read: true })
       .eq('id', id)
-      .then(() => undefined)
-      .catch(() => undefined)
+      .then(() => undefined, () => undefined)
   },
   clearNotifications: () => set({ notifications: [] }),
 }))

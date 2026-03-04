@@ -13,3 +13,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient<Database>(supabaseUrl || '', supabaseAnonKey || '');
 
+export async function testSupabaseConnection() {
+  const { data, error } = await supabase.from('parkings').select('count', { count: 'exact', head: true });
+  if (error) throw error;
+  return data;
+}
+

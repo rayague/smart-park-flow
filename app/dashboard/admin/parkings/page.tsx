@@ -53,9 +53,7 @@ export default function AdminParkingsPage() {
                     location: `${p.city || ''}${p.address ? `, ${p.address}` : ''}`,
                     status: p.status?.toLowerCase() || 'active',
                     spots: p.total_spots || 0,
-                    revenue: reservations
-                        .filter((r) => r.parkingId === p.id)
-                        .reduce((acc, r) => acc + r.totalPrice, 0),
+                    revenue: (p.total_spots - p.available_spots) * p.price_per_hour || 0,
                 }))
                 setParkings(mapped)
             }
@@ -114,8 +112,8 @@ export default function AdminParkingsPage() {
             >
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search all parkings..." 
+                    <Input
+                        placeholder="Search all parkings..."
                         className="pl-9 glass"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -149,42 +147,42 @@ export default function AdminParkingsPage() {
                                 <tr><td colSpan={7} className="py-8 text-center text-muted-foreground">No parkings found</td></tr>
                             ) : (
                                 filteredParkings.map((parking, i) => (
-                                <tr key={parking.id} className="group hover:bg-primary/5 transition-colors">
-                                    <td className="py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-lg bg-primary-box flex items-center justify-center text-primary">
-                                                <Car className="h-4 w-4" />
+                                    <tr key={parking.id} className="group hover:bg-primary/5 transition-colors">
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-8 w-8 rounded-lg bg-primary-box flex items-center justify-center text-primary">
+                                                    <Car className="h-4 w-4" />
+                                                </div>
+                                                <span className="font-medium">{parking.name}</span>
                                             </div>
-                                            <span className="font-medium">{parking.name}</span>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 text-sm font-medium">
-                                        <div className="flex items-center gap-2">
-                                            <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                                            {parking.manager}
-                                        </div>
-                                    </td>
-                                    <td className="py-4 text-sm text-muted-foreground">
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="h-3.5 w-3.5" />
-                                            {parking.location}
-                                        </div>
-                                    </td>
-                                    <td className="py-4 text-sm font-bold">{parking.spots}</td>
-                                    <td className="py-4 text-sm font-bold">€{parking.revenue.toLocaleString()}</td>
-                                    <td className="py-4">
-                                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${parking.status === "active" ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"
-                                            }`}>
-                                            {parking.status}
-                                        </span>
-                                    </td>
-                                    <td className="py-4 text-right">
-                                        <Button variant="ghost" size="icon">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td className="py-4 text-sm font-medium">
+                                            <div className="flex items-center gap-2">
+                                                <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                                {parking.manager}
+                                            </div>
+                                        </td>
+                                        <td className="py-4 text-sm text-muted-foreground">
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="h-3.5 w-3.5" />
+                                                {parking.location}
+                                            </div>
+                                        </td>
+                                        <td className="py-4 text-sm font-bold">{parking.spots}</td>
+                                        <td className="py-4 text-sm font-bold">€{parking.revenue.toLocaleString()}</td>
+                                        <td className="py-4">
+                                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${parking.status === "active" ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"
+                                                }`}>
+                                                {parking.status}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 text-right">
+                                            <Button variant="ghost" size="icon">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                )))}
                         </tbody>
                     </table>
                 </motion.div>
@@ -196,38 +194,38 @@ export default function AdminParkingsPage() {
                         <div className="col-span-full py-8 text-center text-muted-foreground">No parkings found</div>
                     ) : (
                         filteredParkings.map((parking, i) => (
-                        <motion.div
-                            key={parking.id}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: i * 0.1 }}
-                            className="rounded-2xl glass p-6 card-hover"
-                        >
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="h-10 w-10 rounded-xl bg-primary-box flex items-center justify-center text-primary">
-                                    <Car className="h-5 w-5" />
+                            <motion.div
+                                key={parking.id}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="rounded-2xl glass p-6 card-hover"
+                            >
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="h-10 w-10 rounded-xl bg-primary-box flex items-center justify-center text-primary">
+                                        <Car className="h-5 w-5" />
+                                    </div>
+                                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${parking.status === "active" ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"
+                                        }`}>
+                                        {parking.status}
+                                    </span>
                                 </div>
-                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${parking.status === "active" ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"
-                                    }`}>
-                                    {parking.status}
-                                </span>
-                            </div>
-                            <h3 className="font-serif text-lg font-bold mb-1">{parking.name}</h3>
-                            <p className="text-sm text-muted-foreground mb-4 flex items-center gap-1">
-                                <Building2 className="h-3 w-3" /> Managed by {parking.manager}
-                            </p>
-                            <div className="grid grid-cols-2 gap-4 mt-auto border-t border-border/50 pt-4">
-                                <div>
-                                    <p className="text-[10px] uppercase text-muted-foreground tracking-widest">Spots</p>
-                                    <p className="font-bold">{parking.spots}</p>
+                                <h3 className="font-serif text-lg font-bold mb-1">{parking.name}</h3>
+                                <p className="text-sm text-muted-foreground mb-4 flex items-center gap-1">
+                                    <Building2 className="h-3 w-3" /> Managed by {parking.manager}
+                                </p>
+                                <div className="grid grid-cols-2 gap-4 mt-auto border-t border-border/50 pt-4">
+                                    <div>
+                                        <p className="text-[10px] uppercase text-muted-foreground tracking-widest">Spots</p>
+                                        <p className="font-bold">{parking.spots}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] uppercase text-muted-foreground tracking-widest">Revenue</p>
+                                        <p className="font-bold">€{parking.revenue.toLocaleString()}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] uppercase text-muted-foreground tracking-widest">Revenue</p>
-                                    <p className="font-bold">€{parking.revenue.toLocaleString()}</p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        )))}
                 </div>
             )}
         </div>

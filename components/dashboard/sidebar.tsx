@@ -248,7 +248,7 @@ export function DashboardSidebar() {
               )}
             </AnimatePresence>
           </div>
-          
+
           <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
             <AlertDialogTrigger asChild>
               <Button

@@ -51,14 +51,14 @@ export default function LoginPage() {
                 description: "Login successful!"
             })
 
-            // Redirect based on role
-            setTimeout(() => {
-                if (profile.role === 'ADMIN') router.push("/dashboard/admin")
-                else if (profile.role === 'MANAGER') router.push("/dashboard/manager")
-                else router.push("/dashboard/client")
-            }, 500)
+            // Redirect based on role — immediately, no setTimeout
+            if (profile.role === 'ADMIN') router.push("/dashboard/admin")
+            else if (profile.role === 'MANAGER') router.push("/dashboard/manager")
+            else router.push("/dashboard/client")
 
         } catch (error: any) {
+            // Ignore AbortError — caused by navigation interrupting in-flight Supabase requests
+            if (error?.name === 'AbortError') return
             toast({
                 title: t.common.error,
                 description: error.message || "Login failed. Please check your credentials.",

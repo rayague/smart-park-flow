@@ -26,24 +26,34 @@ interface StatsOverviewProps {
     occupancy?: number;
     activeBookings?: number;
     evSessions?: number;
+    hourlyIntake?: number;
 }
 
 export function StatsOverview({
-    revenue = 12845,
-    occupancy = 78,
-    activeBookings = 156,
-    evSessions = 48
+    revenue = 0,
+    occupancy = 0,
+    activeBookings = 0,
+    evSessions = 0,
+    hourlyIntake = 0
 }: StatsOverviewProps) {
     const { t } = useTranslation()
 
     const stats: Stat[] = [
         {
-            title: t.managerDashboard.stats.totalRevenue,
+            title: "Total Earned",
             value: `€${revenue.toLocaleString()}`,
             change: 12.5,
             changeLabel: t.managerDashboard.stats.vsLastMonth,
             icon: DollarSign,
             gradient: "from-primary to-blue-400",
+        },
+        {
+            title: "Live Hourly Income",
+            value: `€${hourlyIntake.toLocaleString()}/hr`,
+            change: 8.2,
+            changeLabel: "vs Last Hour",
+            icon: TrendingUp,
+            gradient: "from-indigo-500 to-primary",
         },
         {
             title: t.managerDashboard.stats.occupancyRate,
@@ -60,14 +70,6 @@ export function StatsOverview({
             changeLabel: t.managerDashboard.stats.vsLastMonth,
             icon: Users,
             gradient: "from-yellow-500 to-orange-400",
-        },
-        {
-            title: t.managerDashboard.stats.evSessions,
-            value: evSessions.toString(),
-            change: 18.3,
-            changeLabel: t.managerDashboard.stats.vsLastMonth,
-            icon: Zap,
-            gradient: "from-purple-500 to-pink-400",
         },
     ]
 

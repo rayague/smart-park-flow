@@ -15,11 +15,43 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { useTranslation } from "@/lib/i18n"
+import { useState, useEffect } from "react"
 import { useAuthStore } from "@/lib/store"
+import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 export default function SettingsPage() {
     const { t } = useTranslation()
-    const { user } = useAuthStore()
+    const { user, updateUser } = useAuthStore()
+    const [name, setName] = useState(user?.name || "")
+    const [isSaving, setIsSaving] = useState(false)
+
+    useEffect(() => {
+        if (user?.name) {
+            setName(user.name)
+        }
+    }, [user?.name])
+
+    const handleSaveProfile = async () => {
+        if (!user) return
+        setIsSaving(true)
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ name })
+                .eq('id', user.id)
+
+            if (error) throw error
+
+            updateUser({ name })
+            toast.success("Profile updated successfully")
+        } catch (error) {
+            console.error('Error updating profile:', error)
+            toast.error("Failed to update profile")
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     const sections = [
         {
@@ -30,18 +62,28 @@ export default function SettingsPage() {
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Full Name</label>
-                            <Input defaultValue={user?.name || "User Name"} />
+                            <Input
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Your Name"
+                            />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Email</label>
-                            <Input defaultValue={user?.email || "user@email.com"} disabled />
+                            <Input value={user?.email || ""} disabled />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Phone</label>
-                            <Input placeholder="+1 (555) 000-0000" />
+                            <Input placeholder="+1 (555) 000-0000" disabled />
                         </div>
                     </div>
-                    <Button className="mt-4">Save Changes</Button>
+                    <Button
+                        className="mt-4"
+                        onClick={handleSaveProfile}
+                        disabled={isSaving || name === user?.name}
+                    >
+                        {isSaving ? "Saving..." : "Save Changes"}
+                    </Button>
                 </div>
             )
         },

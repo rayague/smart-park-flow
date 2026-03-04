@@ -14,6 +14,7 @@ import {
 import { useBookingStore, useReservationStore, useParkingStore } from "@/lib/store"
 import { format } from "date-fns"
 import { useToast } from "@/components/ui/use-toast"
+import { calculateParkingPrice } from "@/lib/utils/pricing"
 
 export function BookingSummary() {
     const { t } = useTranslation()
@@ -34,22 +35,18 @@ export function BookingSummary() {
     const { fetchReservations } = useReservationStore()
     const { parkings } = useParkingStore()
 
-    // Calculate costs
-    const duration = React.useMemo(() => {
-        if (!startTime || !endTime) return 0
-        const [startH, startM] = startTime.split(":").map(Number)
-        const [endH, endM] = endTime.split(":").map(Number)
-        let diff = (endH * 60 + endM) - (startH * 60 + startM)
-        if (diff < 0) diff += 24 * 60
-        return diff / 60
-    }, [startTime, endTime])
-
     const parking = parkings.find(p => p.id === parkingId)
     const pricePerHour = parking?.pricePerHour || 5.00
-    const subtotal = duration * pricePerHour
-    const serviceFee = 2.00
-    const evFee = isEv ? 5.00 : 0
-    const total = subtotal + serviceFee + evFee
+
+    // Use centralized calculation
+    const pricing = React.useMemo(() => calculateParkingPrice({
+        pricePerHour,
+        startTime,
+        endTime,
+        isEv
+    }), [pricePerHour, startTime, endTime, isEv])
+
+    const { subtotal, serviceFee, evFee, total, durationInHours: duration } = pricing
 
     const handleConfirm = async () => {
         setIsSubmitting(true)

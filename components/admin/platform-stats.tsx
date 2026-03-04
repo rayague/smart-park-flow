@@ -10,7 +10,8 @@ import {
     TrendingUp,
     Activity,
     Server,
-    Wifi
+    Wifi,
+    LucideIcon
 } from "lucide-react"
 import { useTranslation } from "@/lib/i18n"
 import { supabase } from "@/lib/supabase"
@@ -20,7 +21,7 @@ interface PlatformStat {
     title: string
     value: string | number
     subtitle: string
-    icon: React.ElementType
+    icon: LucideIcon
     gradient: string
     change?: number
 }
@@ -36,24 +37,24 @@ export function PlatformStats() {
     React.useEffect(() => {
         fetchReservations()
         fetchParkings()
-        
+
         async function fetchCounts() {
             const [usersRes, managersRes] = await Promise.all([
                 supabase.from('profiles').select('id', { count: 'exact', head: true }),
                 supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'MANAGER')
             ])
-            
+
             if (usersRes.count !== null) setUserCount(usersRes.count)
             if (managersRes.count !== null) setManagerCount(managersRes.count)
             setLoading(false)
         }
-        
+
         fetchCounts()
     }, [fetchReservations, fetchParkings])
 
-    const totalRevenue = React.useMemo(() => 
-        reservations.reduce((acc, r) => acc + r.totalPrice, 0),
-    [reservations])
+    const totalRevenue = React.useMemo(() =>
+        parkings.reduce((acc, p) => acc + ((p.totalSpots - p.availableSpots) * p.pricePerHour), 0),
+        [parkings])
 
     const stats: PlatformStat[] = [
         {
@@ -92,42 +93,45 @@ export function PlatformStats() {
 
     return (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat, index) => (
-                <motion.div
-                    key={stat.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="relative overflow-hidden rounded-2xl glass p-6 card-hover"
-                >
-                    {/* Background gradient */}
-                    <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${stat.gradient} opacity-20 blur-2xl`} />
+            {stats.map((stat, index) => {
+                const Icon = stat.icon
+                return (
+                    <motion.div
+                        key={stat.title}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="relative overflow-hidden rounded-2xl glass p-6 card-hover"
+                    >
+                        {/* Background gradient */}
+                        <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${stat.gradient} opacity-20 blur-2xl`} />
 
-                    {/* Icon */}
-                    <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${stat.gradient}`}>
-                        <stat.icon className="h-6 w-6 text-white" />
-                    </div>
-
-                    {/* Content */}
-                    <div>
-                        <p className="text-sm text-muted-foreground">{stat.title}</p>
-                        <p className="mt-1 font-serif text-3xl font-bold">{stat.value}</p>
-
-                        {/* Subtitle with change */}
-                        <div className="mt-2 flex items-center gap-2">
-                            {stat.change && (
-                                <span className="flex items-center text-sm text-green-500">
-                                    <TrendingUp className="mr-1 h-3 w-3" />
-                                    +{stat.change}%
-                                </span>
-                            )}
-                            <span className="text-xs text-muted-foreground">
-                                {stat.subtitle}
-                            </span>
+                        {/* Icon */}
+                        <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${stat.gradient}`}>
+                            <Icon className="h-6 w-6 text-white" />
                         </div>
-                    </div>
-                </motion.div>
-            ))}
+
+                        {/* Content */}
+                        <div>
+                            <p className="text-sm text-muted-foreground">{stat.title}</p>
+                            <p className="mt-1 font-serif text-3xl font-bold">{stat.value}</p>
+
+                            {/* Subtitle with change */}
+                            <div className="mt-2 flex items-center gap-2">
+                                {stat.change && (
+                                    <span className="flex items-center text-sm text-green-500">
+                                        <TrendingUp className="mr-1 h-3 w-3" />
+                                        +{stat.change}%
+                                    </span>
+                                )}
+                                <span className="text-xs text-muted-foreground">
+                                    {stat.subtitle}
+                                </span>
+                            </div>
+                        </div>
+                    </motion.div>
+                )
+            })}
         </div>
     )
 }
@@ -150,26 +154,29 @@ export function SystemHealth() {
             <h3 className="mb-4 font-serif text-xl font-semibold">System Health</h3>
 
             <div className="space-y-3">
-                {services.map((service) => (
-                    <div
-                        key={service.name}
-                        className="flex items-center justify-between rounded-xl bg-subtle p-3"
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-icon-box">
-                                <service.icon className="h-4 w-4 text-muted-foreground" />
+                {services.map((service) => {
+                    const Icon = service.icon
+                    return (
+                        <div
+                            key={service.name}
+                            className="flex items-center justify-between rounded-xl bg-subtle p-3"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-icon-box">
+                                    <Icon className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                                <span className="font-medium">{service.name}</span>
                             </div>
-                            <span className="font-medium">{service.name}</span>
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm text-muted-foreground">{service.latency}</span>
+                                <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-500">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                    {service.status}
+                                </span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm text-muted-foreground">{service.latency}</span>
-                            <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-500">
-                                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                                {service.status}
-                            </span>
-                        </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
         </motion.div>
     )

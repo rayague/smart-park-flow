@@ -6,7 +6,7 @@ import { Points, PointMaterial } from "@react-three/drei"
 import { useTheme } from "next-themes"
 
 function Stars(props: any) {
-    const ref = React.useRef<any>()
+    const ref = React.useRef<any>(null)
 
     // Use useMemo to generate points only once
     const sphere = React.useMemo(() => {
@@ -71,6 +71,7 @@ export function StarrySky() {
             <Canvas
                 camera={{ position: [0, 0, 1] }}
                 gl={{ alpha: true, antialias: false }} // Performance optimizations
+                style={{ pointerEvents: 'none' }}
             >
                 <Stars />
             </Canvas>

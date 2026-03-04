@@ -31,14 +31,22 @@ export default function ManagerDashboard() {
     const recentBookings = React.useMemo(() => reservations.slice(0, 5), [reservations])
 
     const stats = React.useMemo(() => {
-        const totalRevenue = reservations.reduce((acc, curr) => acc + curr.totalPrice, 0)
         const activeBookings = reservations.filter((r) => r.status === "active").length
         const totalSpots = parkings.reduce((acc, curr) => acc + curr.totalSpots, 0)
         const availableSpots = parkings.reduce((acc, curr) => acc + curr.availableSpots, 0)
         const occupancy = totalSpots > 0 ? Math.round(((totalSpots - availableSpots) / totalSpots) * 100) : 0
         const evSessions = reservations.filter((r) => r.isEv).length
 
-        return { totalRevenue, occupancy, activeBookings, evSessions }
+        // Calculate hourly intake across all parkings
+        const hourlyIntake = parkings.reduce((acc, p) => {
+            const occupied = p.totalSpots - p.availableSpots
+            return acc + (occupied * p.pricePerHour)
+        }, 0)
+
+        // Revenue defined as sum of all hourly earned as per user request
+        const totalRevenue = hourlyIntake
+
+        return { totalRevenue, occupancy, activeBookings, evSessions, hourlyIntake }
     }, [parkings, reservations])
 
     return (
@@ -63,6 +71,7 @@ export default function ManagerDashboard() {
                 occupancy={stats.occupancy}
                 activeBookings={stats.activeBookings}
                 evSessions={stats.evSessions}
+                hourlyIntake={stats.hourlyIntake}
             />
 
             {/* Charts Grid */}
