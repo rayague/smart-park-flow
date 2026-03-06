@@ -23,6 +23,7 @@ import {
 import { LogOut } from "lucide-react"
 import { useUIStore, useAuthStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
+import { useLogout } from "@/lib/use-logout"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -47,7 +48,6 @@ const userNavItems = [
 
 const managerNavItems = [
   { href: "/dashboard/manager", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/manager/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/manager/spots", label: "Manage Spots", icon: Car },
   { href: "/dashboard/manager/chargers", label: "EV Chargers", icon: Zap },
   { href: "/dashboard/manager/revenue", label: "Revenue", icon: CreditCard },
@@ -58,7 +58,6 @@ const adminNavItems = [
   { href: "/dashboard/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/admin/users", label: "Users", icon: Users },
   { href: "/dashboard/admin/parkings", label: "Parkings", icon: Building2 },
-  { href: "/dashboard/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/admin/notifications", label: "Notifications", icon: Bell },
   { href: "/dashboard/admin/settings", label: "Settings", icon: Settings },
 ]
@@ -70,23 +69,7 @@ export function DashboardSidebar() {
   const [logoutDialogOpen, setLogoutDialogOpen] = React.useState(false)
   const router = require("next/navigation").useRouter()
 
-  const handleLogout = async () => {
-    try {
-      setLogoutDialogOpen(false)
-      const { signOut } = await import("@/lib/auth")
-      await signOut()
-      logout()
-      setTimeout(() => {
-        window.location.href = "/"
-      }, 100)
-    } catch (error) {
-      console.error("Logout error:", error)
-      logout()
-      setTimeout(() => {
-        window.location.href = "/"
-      }, 100)
-    }
-  }
+  const handleLogout = useLogout()
 
   const navItems = React.useMemo(() => {
     switch (user?.role) {
@@ -282,7 +265,7 @@ export function DashboardSidebar() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel onClick={() => setLogoutDialogOpen(false)}>Cancel</AlertDialogCancel>
-                <Button onClick={handleLogout} variant="destructive" className="cursor-pointer">
+                <Button onClick={() => { setLogoutDialogOpen(false); handleLogout(); }} variant="destructive" className="cursor-pointer">
                   Sign Out
                 </Button>
               </AlertDialogFooter>

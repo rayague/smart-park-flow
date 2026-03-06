@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/lib/store"
 import { useTranslation } from "@/lib/i18n"
+import { useLogout } from "@/lib/use-logout"
 
 export function ManagerSidebar() {
     const pathname = usePathname()
@@ -27,17 +28,7 @@ export function ManagerSidebar() {
     const { user, logout } = useAuthStore()
     const { t } = useTranslation()
 
-    const handleLogout = async () => {
-        setShowLogoutConfirm(false)
-        try {
-            const { signOut } = await import("@/lib/auth")
-            await signOut()
-        } catch (error) {
-            console.error("SignOut error:", error)
-        }
-        logout()
-        window.location.href = "/"
-    }
+    const handleLogout = useLogout()
 
     const navItems = [
         {
@@ -55,11 +46,6 @@ export function ManagerSidebar() {
             href: "/dashboard/manager/spots",
             label: t.managerDashboard.navigation.spots,
             icon: MapPin
-        },
-        {
-            href: "/dashboard/manager/analytics",
-            label: t.managerDashboard.navigation.analytics,
-            icon: BarChart3
         },
         {
             href: "/dashboard/manager/settings",
@@ -240,9 +226,11 @@ export function ManagerSidebar() {
                             <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={handleLogout}
+                                asChild
                             >
-                                Sign Out
+                                <a href="/" onClick={(e) => { e.preventDefault(); setShowLogoutConfirm(false); handleLogout(); }}>
+                                    Sign Out
+                                </a>
                             </Button>
                         </div>
                     </div>

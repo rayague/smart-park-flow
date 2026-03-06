@@ -7,7 +7,7 @@ import { RoutingLoader } from '@/components/routing-loader'
 import { Suspense } from 'react'
 import { Analytics } from '@/components/analytics'
 
-import { StarrySkyWrapper } from "@/components/three/starry-sky-wrapper"
+import { CssStars } from "@/components/css-stars"
 import { AuthBootstrap } from '@/components/auth/auth-bootstrap'
 
 const inter = Inter({
@@ -44,7 +44,7 @@ export default function RootLayout({
             <RoutingLoader />
           </Suspense>
           <LoadingOverlay />
-          <StarrySkyWrapper />
+          <CssStars />
           {children}
         </ThemeProvider>
         <Analytics />

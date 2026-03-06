@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/lib/store"
 import { useTranslation } from "@/lib/i18n"
+import { useLogout } from "@/lib/use-logout"
 
 export function UserSidebar() {
     const pathname = usePathname()
@@ -27,17 +28,7 @@ export function UserSidebar() {
     const { user, logout } = useAuthStore()
     const { t } = useTranslation()
 
-    const handleLogout = async () => {
-        setShowLogoutConfirm(false)
-        try {
-            const { signOut } = await import("@/lib/auth")
-            await signOut()
-        } catch (error) {
-            console.error("SignOut error:", error)
-        }
-        logout()
-        window.location.href = "/"
-    }
+    const handleLogout = useLogout()
 
     const navItems = [
         {
@@ -240,7 +231,7 @@ export function UserSidebar() {
                         <Button
                             variant="destructive"
                             size="sm"
-                            onClick={handleLogout}
+                            onClick={() => { setShowLogoutConfirm(false); handleLogout(); }}
                         >
                             Sign Out
                         </Button>

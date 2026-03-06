@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/lib/store"
 import { useTranslation } from "@/lib/i18n"
+import { useLogout } from "@/lib/use-logout"
 
 export function AdminSidebar() {
     const pathname = usePathname()
@@ -29,17 +30,7 @@ export function AdminSidebar() {
     const { user, logout } = useAuthStore()
     const { t } = useTranslation()
 
-    const handleLogout = async () => {
-        setShowLogoutConfirm(false)
-        try {
-            const { signOut } = await import("@/lib/auth")
-            await signOut()
-        } catch (error) {
-            console.error("SignOut error:", error)
-        }
-        logout()
-        window.location.href = "/"
-    }
+    const handleLogout = useLogout()
 
     const navItems = [
         {
@@ -62,11 +53,6 @@ export function AdminSidebar() {
             href: "/dashboard/admin/parkings",
             label: t.adminDashboard.navigation.parkings,
             icon: ParkingCircle
-        },
-        {
-            href: "/dashboard/admin/analytics",
-            label: t.adminDashboard.navigation.analytics,
-            icon: BarChart3
         },
         {
             href: "/dashboard/admin/settings",
@@ -250,10 +236,10 @@ export function AdminSidebar() {
                             <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={handleLogout}
+                                onClick={() => { setShowLogoutConfirm(false); handleLogout(); }}
                                 asChild
                             >
-                                <a href="/" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
+                                <a href="/" onClick={(e) => { e.preventDefault(); setShowLogoutConfirm(false); handleLogout(); }}>
                                     Sign Out
                                 </a>
                             </Button>
