@@ -11,6 +11,7 @@ import { useTranslation } from "@/lib/i18n"
 import { useAuthStore } from "@/lib/store"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
+import { AuthLoadingOverlay } from "@/components/auth/auth-loading-overlay"
 
 export default function LoginPage() {
     const { t } = useTranslation()
@@ -48,7 +49,7 @@ export default function LoginPage() {
 
             toast({
                 title: t.common.success,
-                description: "Login successful!"
+                description: t.auth.login.success || "Login successful!"
             })
 
             // Redirect based on role — immediately, no setTimeout
@@ -61,7 +62,7 @@ export default function LoginPage() {
             if (error?.name === 'AbortError') return
             toast({
                 title: t.common.error,
-                description: error.message || "Login failed. Please check your credentials.",
+                description: error.message || t.auth.login.error || "Login failed. Please check your credentials.",
                 variant: "destructive"
             })
         } finally {
@@ -71,11 +72,12 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen grid lg:grid-cols-2 relative overflow-hidden">
+            <AuthLoadingOverlay isLoading={isLoading} message={t.common.loading} />
             {/* Left Panel - Form */}
             <div className="relative z-10 flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-12">
                 <Link href="/" className="absolute top-8 left-8 sm:left-12 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft className="h-4 w-4" />
-                    Back to Home
+                    {t.common.back}
                 </Link>
 
                 <motion.div
@@ -84,13 +86,13 @@ export default function LoginPage() {
                     className="w-full max-w-md mx-auto space-y-8"
                 >
                     <div className="space-y-2">
-                        <h1 className="font-serif text-3xl font-bold">Welcome back</h1>
-                        <p className="text-muted-foreground">Enter your credentials to access your account</p>
+                        <h1 className="font-sans text-3xl font-bold">{t.auth.login.title}</h1>
+                        <p className="text-muted-foreground">{t.auth.login.subtitle}</p>
                     </div>
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Email</label>
+                            <label className="text-sm font-medium">{t.auth.login.email}</label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -105,7 +107,7 @@ export default function LoginPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Password</label>
+                            <label className="text-sm font-medium">{t.auth.login.password}</label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -122,26 +124,26 @@ export default function LoginPage() {
                         <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                                 <Checkbox id="remember" />
-                                <label htmlFor="remember" className="font-medium cursor-pointer">Remember me</label>
+                                <label htmlFor="remember" className="font-medium cursor-pointer">{t.auth.login.rememberMe}</label>
                             </div>
                             <Link href="#" className="text-primary hover:underline font-medium">
-                                Forgot password?
+                                {t.auth.login.forgotPassword}
                             </Link>
                         </div>
 
                         <Button
-                            className="w-full h-12 text-base font-medium glow-primary bg-gradient-to-r from-primary to-accent"
+                            className="w-full h-12 text-base font-medium glow-primary bg-linear-to-r from-primary to-accent"
                             disabled={isLoading}
                             type="submit"
                         >
-                            {isLoading ? t.common.loading : "Sign In"}
+                            {isLoading ? t.common.loading : t.auth.login.button}
                         </Button>
                     </form>
 
                     <p className="text-center text-sm text-muted-foreground pt-4">
-                        Don't have an account?{" "}
+                        {t.auth.login.noAccount}{" "}
                         <Link href="/register" className="text-primary hover:underline font-medium">
-                            Sign up
+                            {t.auth.login.signUpLink}
                         </Link>
                     </p>
                 </motion.div>
@@ -157,11 +159,11 @@ export default function LoginPage() {
                         desc="Find the perfect spot in seconds"
                         className="mb-8 rotate-3"
                     />
-                    <h2 className="font-serif text-4xl font-bold mb-4 relative z-10">
-                        Simplifying Urban Mobility
+                    <h2 className="font-sans text-4xl font-bold mb-4 relative z-10">
+                        {t.auth.login.visualTitle || "Simplifying Urban Mobility"}
                     </h2>
                     <p className="text-lg text-muted-foreground relative z-10 max-w-sm">
-                        Join thousands of drivers saving time and reducing emissions every day.
+                        {t.auth.login.visualSubtitle || "Join thousands of drivers saving time and reducing emissions every day."}
                     </p>
                 </div>
             </div>

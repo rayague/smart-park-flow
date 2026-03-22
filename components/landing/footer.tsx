@@ -69,7 +69,7 @@ export function Footer() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent">
                 <Car className="h-5 w-5 text-white" />
               </div>
-              <span className="font-serif text-xl font-bold">
+              <span className="font-sans text-xl font-bold">
                 Smart<span className="text-gradient-primary">Park</span>
               </span>
             </Link>
@@ -215,7 +215,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-4">
               <span className="text-xs text-muted-foreground/60">
-                Made with 💚 for sustainable mobility
+                {t.landing.footer.madeWith}
               </span>
             </div>
           </div>

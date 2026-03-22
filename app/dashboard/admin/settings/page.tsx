@@ -20,9 +20,70 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTranslation } from "@/lib/i18n"
+import { supabase } from "@/lib/supabase"
 
 export default function AdminSettingsPage() {
     const { t } = useTranslation()
+
+    const [systemLoading, setSystemLoading] = React.useState(true)
+    const [systemStats, setSystemStats] = React.useState<{
+        api: { value: string; status: "ok" | "warning" }
+        db: { value: string; status: "ok" | "warning" }
+        storage: { value: string; status: "ok" | "warning" }
+    }>({
+        api: { value: "-", status: "warning" },
+        db: { value: "-", status: "warning" },
+        storage: { value: "-", status: "warning" },
+    })
+
+    React.useEffect(() => {
+        let cancelled = false
+
+        async function measure(fn: () => Promise<void>) {
+            const start = performance.now()
+            await fn()
+            return Math.max(0, Math.round(performance.now() - start))
+        }
+
+        async function fetchSystemHealth() {
+            setSystemLoading(true)
+            try {
+                const apiMs = await measure(async () => {
+                    const { error } = await supabase.from("profiles").select("id", { count: "exact", head: true })
+                    if (error) throw error
+                })
+
+                const dbMs = await measure(async () => {
+                    const { error } = await supabase.from("parkings").select("id", { count: "exact", head: true })
+                    if (error) throw error
+                })
+
+                if (!cancelled) {
+                    setSystemStats({
+                        api: { value: `${apiMs}ms`, status: apiMs <= 500 ? "ok" : "warning" },
+                        db: { value: `${dbMs}ms`, status: dbMs <= 500 ? "ok" : "warning" },
+                        storage: { value: "-", status: "warning" },
+                    })
+                }
+            } catch (e) {
+                console.error("Failed to load system health:", e)
+                if (!cancelled) {
+                    setSystemStats({
+                        api: { value: "-", status: "warning" },
+                        db: { value: "-", status: "warning" },
+                        storage: { value: "-", status: "warning" },
+                    })
+                }
+            } finally {
+                if (!cancelled) setSystemLoading(false)
+            }
+        }
+
+        fetchSystemHealth()
+        return () => {
+            cancelled = true
+        }
+    }, [])
 
     return (
         <div className="space-y-6">
@@ -127,9 +188,9 @@ export default function AdminSettingsPage() {
                 <TabsContent value="system">
                     <div className="grid gap-6 md:grid-cols-3">
                         {[
-                            { label: "API Status", value: "Operational", status: "ok", icon: Zap },
-                            { label: "Database", value: "Healthy", status: "ok", icon: Database },
-                            { label: "Storage", value: "85% Used", status: "warning", icon: Server },
+                            { label: "API Status", value: systemLoading ? "-" : systemStats.api.value, status: systemStats.api.status, icon: Zap },
+                            { label: "Database", value: systemLoading ? "-" : systemStats.db.value, status: systemStats.db.status, icon: Database },
+                            { label: "Storage", value: systemLoading ? "-" : systemStats.storage.value, status: systemStats.storage.status, icon: Server },
                         ].map((item, i) => (
                             <motion.div
                                 key={i}

@@ -47,23 +47,25 @@ export const en = {
     managers: "Managers",
     support: "Support",
     signIn: "Sign In",
-    getStarted: "Get Started",
+    getStarted: "Create Account",
   },
 
   // Landing Page
   landing: {
     badge: "Now available in 50+ cities",
-    heroTitle: "The Future of",
+    heroTitle: "Parking Made",
     typingTexts: {
-      smartParking: "Smart Parking",
-      evCharging: "EV Charging",
-      urbanMobility: "Urban Mobility",
-      easyBooking: "Easy Booking",
+      smartParking: "Smarter",
+      evCharging: "Faster",
+      urbanMobility: "Simpler",
+      easyBooking: "Effortless",
     },
-    heroDescription: "Find, book, and pay for parking spots in seconds. Join thousands of drivers who save time and reduce stress with our intelligent parking platform.",
+    heroDescription: "Find, book, and pay for your spot in seconds. Join thousands of drivers who choose a smarter way to park.",
     startFree: "Start for Free",
     watchDemo: "Watch Demo",
     scrollToExplore: "Scroll to explore",
+    heroSearchPlaceholder: "Find a city, an address or a parking name...",
+    findParking: "Find Parking",
 
     // Features
     features: {
@@ -179,6 +181,7 @@ export const en = {
       privacy: "Privacy Policy",
       cookies: "Cookie Policy",
       copyright: "All rights reserved.",
+      madeWith: "Made with 💚 for sustainable mobility",
     },
   },
 
@@ -196,21 +199,37 @@ export const en = {
       signUpLink: "Sign up",
     },
     register: {
-      title: "Create Account",
-      subtitle: "Join SmartPark and start parking smarter",
+      title: "Join the Network",
+      subtitle: "Choose how you want to use SmartPark to begin.",
       name: "Full Name",
-      email: "Email",
+      firstName: "First Name",
+      lastName: "Last Name",
+      email: "Email Address",
       password: "Password",
+      choosePassword: "Choose Password",
+      passwordMinLength: "Minimum 8 characters with at least one number.",
       confirmPassword: "Confirm Password",
       role: "Account Type",
       roles: {
         user: "Driver",
-        manager: "Parking Manager",
+        manager: "Owner",
       },
-      terms: "I agree to the Terms of Service and Privacy Policy",
+      personalDetails: "Personal Details",
+      vehicleInfo: "Vehicle Info",
+      licensePlate: "License Plate",
+      professionalInfo: "Professional Info",
+      companyName: "Company Name",
+      phone: "Contact Phone",
+      security: "Security",
+      termsTitle: "Terms & Privacy",
+      terms: "I agree to the Terms of Service and Privacy Policy.",
       button: "Create Account",
       hasAccount: "Already have an account?",
-      signInLink: "Sign in",
+      signInLink: "Sign In",
+      requiredFields: "All fields in this step are required",
+      successTitle: "Welcome to SmartPark!",
+      successSubtitle: "Your account has been created successfully. Redirecting you to your dashboard...",
+      encrypted: "Protected by AES-256 encryption.",
     },
     errors: {
       invalidEmail: "Please enter a valid email",
@@ -228,6 +247,7 @@ export const en = {
 
     stats: {
       totalReservations: "Total Reservations",
+      hoursParked: "Hours Parked",
       co2Saved: "CO2 Saved",
       timeSaved: "Time Saved",
       totalSpent: "Total Spent",
@@ -244,6 +264,12 @@ export const en = {
     emptyReservations: {
       title: "No Active Reservations",
       description: "Find a parking spot near your destination and book instantly.",
+    },
+
+    vehicle: {
+      title: "Add Your Vehicle",
+      description: "Register your vehicle to enable automatic license plate recognition and faster entry.",
+      button: "Register Vehicle",
     },
 
     evPromo: {

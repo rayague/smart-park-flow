@@ -19,23 +19,10 @@ import { ActivityFeed } from "@/components/admin/activity-feed"
 import { UsersTable } from "@/components/admin/users-table"
 import { useAuthStore } from "@/lib/store"
 import { useTranslation } from "@/lib/i18n"
+import { supabase } from "@/lib/supabase"
 
-// User growth data
-const userGrowthData = [
-    { month: "Jan", users: 8500 },
-    { month: "Feb", users: 9200 },
-    { month: "Mar", users: 9800 },
-    { month: "Apr", users: 10500 },
-    { month: "May", users: 11200 },
-    { month: "Jun", users: 12458 },
-]
-
-// User distribution data
-const userDistribution = [
-    { name: "Users", value: 12000, color: "#2563eb" },
-    { name: "Managers", value: 156, color: "#8b5cf6" },
-    { name: "Admins", value: 12, color: "#ef4444" },
-]
+type GrowthPoint = { month: string; users: number }
+type DistributionPoint = { name: string; value: number; color: string }
 
 interface CustomTooltipProps {
     active?: boolean
@@ -62,6 +49,65 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 export default function AdminDashboard() {
     const { user } = useAuthStore()
     const { t } = useTranslation()
+
+    const [userGrowthData, setUserGrowthData] = React.useState<GrowthPoint[]>([])
+    const [userDistribution, setUserDistribution] = React.useState<DistributionPoint[]>([
+        { name: "Users", value: 0, color: "#2563eb" },
+        { name: "Managers", value: 0, color: "#8b5cf6" },
+        { name: "Admins", value: 0, color: "#ef4444" },
+    ])
+
+    React.useEffect(() => {
+        const now = new Date()
+        const start = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+
+        async function fetchDashboardData() {
+            try {
+                const [profilesRes, usersCountRes, managersCountRes, adminsCountRes] = await Promise.all([
+                    supabase
+                        .from("profiles")
+                        .select("created_at")
+                        .gte("created_at", start.toISOString())
+                        .order("created_at", { ascending: true }),
+                    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "USER"),
+                    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "MANAGER"),
+                    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "ADMIN"),
+                ])
+
+                if (!profilesRes.error) {
+                    const buckets = new Map<string, number>()
+                    for (let i = 0; i < 6; i++) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+                        const key = d.toLocaleString("en-US", { month: "short" })
+                        buckets.set(key, 0)
+                    }
+
+                    for (const row of profilesRes.data || []) {
+                        const d = new Date((row as any).created_at)
+                        const key = d.toLocaleString("en-US", { month: "short" })
+                        if (buckets.has(key)) buckets.set(key, (buckets.get(key) || 0) + 1)
+                    }
+
+                    let cumulative = 0
+                    const growth: GrowthPoint[] = Array.from(buckets.entries()).map(([month, count]) => {
+                        cumulative += count
+                        return { month, users: cumulative }
+                    })
+                    setUserGrowthData(growth)
+                }
+
+                setUserDistribution([
+                    { name: "Users", value: usersCountRes.count ?? 0, color: "#2563eb" },
+                    { name: "Managers", value: managersCountRes.count ?? 0, color: "#8b5cf6" },
+                    { name: "Admins", value: adminsCountRes.count ?? 0, color: "#ef4444" },
+                ])
+            } catch (e) {
+                console.error("Failed to load admin dashboard stats:", e)
+            }
+        }
+
+        fetchDashboardData()
+    }, [])
 
     return (
         <div className="space-y-6">

@@ -11,9 +11,9 @@ export function DashboardFooter() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
                 <p>© {new Date().getFullYear()} SmartPark. {t.landing.footer.copyright}</p>
                 <div className="flex items-center gap-4">
-                    <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-                    <a href="#" className="hover:text-primary transition-colors">Terms</a>
-                    <a href="#" className="hover:text-primary transition-colors">Support</a>
+                    <a href="#" className="hover:text-primary transition-colors">{t.landing.footer.privacy}</a>
+                    <a href="#" className="hover:text-primary transition-colors">{t.landing.footer.terms}</a>
+                    <a href="#" className="hover:text-primary transition-colors">{t.landing.footer.support}</a>
                 </div>
             </div>
         </footer>

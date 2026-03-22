@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
+import { useTranslation } from "@/lib/i18n"
 
 function ParkingCard({ 
   parking, 
@@ -34,6 +35,10 @@ function ParkingCard({
   const isInView = useInView(ref, { once: true, margin: "-50px" })
   const availabilityPercent = (parking.availableSpots / parking.totalSpots) * 100
 
+  // Standard OpenStreetMap / Leaflet view (Static Image Strategy for performance)
+  // For interaction, we would replace this with a real Mapbox/Leaflet component
+  const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-s+ff0000(${parking.longitude},${parking.latitude})/${parking.longitude},${parking.latitude},15/600x400?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZzeXoiLCJhIjoiY2l6Nzh2YnB6MDAzMnMyeW94eXpqcDlyMiJ9"}`
+
   return (
     <motion.div
       ref={ref}
@@ -43,17 +48,16 @@ function ParkingCard({
       className="group relative"
     >
       <div className="relative h-full overflow-hidden rounded-2xl glass card-hover">
-        {/* Image */}
-        <div className="relative h-48 overflow-hidden">
+        {/* Map View instead of Photo */}
+        <div className="relative h-48 overflow-hidden bg-muted">
           <Image
-            src={parking.images[0] || "/placeholder.svg"}
-            alt={parking.name}
+            src={mapUrl}
+            alt={`Location of ${parking.name}`}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized
           />
-          
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-primary/10 group-hover:bg-transparent transition-colors duration-500" />
           
           {/* Badges */}
           <div className="absolute top-3 left-3 flex gap-2">
@@ -147,6 +151,7 @@ function ParkingCard({
 }
 
 export function ParkingsSection() {
+  const { t } = useTranslation()
   const titleRef = React.useRef(null)
   const isTitleInView = useInView(titleRef, { once: true })
 
@@ -228,16 +233,15 @@ export function ParkingsSection() {
             className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2"
           >
             <MapPin className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Parkings</span>
+            <span className="text-sm font-medium text-primary">{t.nav.parkings}</span>
           </motion.div>
           
-          <h2 className="mb-4 font-serif text-3xl font-bold sm:text-4xl lg:text-5xl text-balance">
-            Discover <span className="text-gradient-primary">premium parkings</span> near you
+          <h2 className="mb-4 font-sans text-3xl font-black sm:text-4xl lg:text-5xl text-balance">
+            {t.landing.parkingsSection.title}
           </h2>
           
           <p className="text-lg text-muted-foreground">
-            From city centers to airports, find the perfect spot for your vehicle 
-            with real-time availability updates.
+            {t.landing.parkingsSection.subtitle}
           </p>
         </motion.div>
 
@@ -255,9 +259,9 @@ export function ParkingsSection() {
           transition={{ delay: 0.8 }}
           className="mt-12 text-center"
         >
-          <Button size="lg" variant="outline" className="gap-2 glass bg-transparent">
-            View All Parkings
-            <ArrowRight className="h-4 w-4" />
+          <Button size="lg" className="gap-2 bg-linear-to-r from-primary to-accent glow-primary-sm border-0 font-bold px-8 h-14 rounded-2xl">
+            {t.common.viewAll} {t.nav.parkings}
+            <ArrowRight className="h-5 w-5" />
           </Button>
         </motion.div>
       </div>

@@ -44,10 +44,10 @@ export default function SettingsPage() {
             if (error) throw error
 
             updateUser({ name })
-            toast.success("Profile updated successfully")
+            toast.success(t.common.success || "Profile updated successfully")
         } catch (error) {
             console.error('Error updating profile:', error)
-            toast.error("Failed to update profile")
+            toast.error(t.common.error || "Failed to update profile")
         } finally {
             setIsSaving(false)
         }
@@ -55,61 +55,61 @@ export default function SettingsPage() {
 
     const sections = [
         {
-            title: "Profile",
+            title: t.settings.sections.profile,
             icon: User,
             content: (
                 <div className="space-y-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Full Name</label>
+                            <label className="text-sm font-medium">{t.settings.profile.name}</label>
                             <Input
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="Your Name"
+                                placeholder={t.settings.profile.name}
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Email</label>
+                            <label className="text-sm font-medium">{t.settings.profile.email}</label>
                             <Input value={user?.email || ""} disabled />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Phone</label>
-                            <Input placeholder="+1 (555) 000-0000" disabled />
+                            <label className="text-sm font-medium">{t.settings.profile.phone}</label>
+                            <Input placeholder={t.settings.profile.phone} disabled />
                         </div>
                     </div>
                     <Button
-                        className="mt-4"
+                        className="mt-4 font-bold uppercase tracking-tight"
                         onClick={handleSaveProfile}
                         disabled={isSaving || name === user?.name}
                     >
-                        {isSaving ? "Saving..." : "Save Changes"}
+                        {isSaving ? t.common.loading : t.common.save}
                     </Button>
                 </div>
             )
         },
         {
-            title: "Notifications",
+            title: t.settings.sections.notifications,
             icon: Bell,
             content: (
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                            <label className="font-medium">Push Notifications</label>
-                            <p className="text-sm text-muted-foreground">Receive alerts on your device</p>
+                            <label className="font-medium">{t.settings.notifications.push}</label>
+                            <p className="text-sm text-muted-foreground">{t.settings.notifications.types.bookingReminders}</p>
                         </div>
                         <Switch defaultChecked />
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                            <label className="font-medium">Email Updates</label>
-                            <p className="text-sm text-muted-foreground">Receive booking confirmations and receipts</p>
+                            <label className="font-medium">{t.settings.notifications.email}</label>
+                            <p className="text-sm text-muted-foreground">{t.settings.notifications.types.bookingConfirmation}</p>
                         </div>
                         <Switch defaultChecked />
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                            <label className="font-medium">Marketing</label>
-                            <p className="text-sm text-muted-foreground">Receive offers and promotions</p>
+                            <label className="font-medium">{t.settings.notifications.types.promotions}</label>
+                            <p className="text-sm text-muted-foreground">{t.settings.notifications.types.updates}</p>
                         </div>
                         <Switch />
                     </div>
@@ -117,7 +117,7 @@ export default function SettingsPage() {
             )
         },
         {
-            title: "Payment Methods",
+            title: t.settings.sections.billing,
             icon: CreditCard,
             content: (
                 <div className="space-y-4">
@@ -131,11 +131,11 @@ export default function SettingsPage() {
                                 <p className="text-xs text-muted-foreground">Expires 12/28</p>
                             </div>
                         </div>
-                        <Button variant="ghost" size="sm">Edit</Button>
+                        <Button variant="ghost" size="sm" className="font-bold uppercase tracking-tight">{t.common.edit}</Button>
                     </div>
-                    <Button variant="outline" className="w-full border-dashed gap-2">
+                    <Button variant="outline" className="w-full border-dashed gap-2 font-bold uppercase tracking-tight">
                         <CreditCard className="h-4 w-4" />
-                        Add New Card
+                        {t.common.add}
                     </Button>
                 </div>
             )
@@ -145,8 +145,8 @@ export default function SettingsPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             <div className="mb-8">
-                <h1 className="font-serif text-3xl font-bold">{t.userDashboard.navigation.settings}</h1>
-                <p className="text-muted-foreground">Manage your account preferences and settings</p>
+                <h1 className="font-heading text-3xl font-black tracking-tighter uppercase">{t.settings.title}</h1>
+                <p className="text-muted-foreground">{t.userDashboard.navigation.settings}</p>
             </div>
 
             <div className="grid gap-8">
@@ -162,7 +162,7 @@ export default function SettingsPage() {
                             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-box text-primary">
                                 <section.icon className="h-5 w-5" />
                             </div>
-                            <h2 className="font-serif text-xl font-semibold">{section.title}</h2>
+                            <h2 className="font-bold text-xl uppercase tracking-tight">{section.title}</h2>
                         </div>
                         {section.content}
                     </motion.div>

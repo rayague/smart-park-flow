@@ -6,7 +6,8 @@ import { UserHeader } from "@/components/dashboard/user-header"
 import { DashboardFooter } from "@/components/dashboard/footer"
 import { usePathname } from "next/navigation"
 import { useRouter } from "next/navigation"
-import { useAuthStore } from "@/lib/store"
+import { useAuthStore, useTranslation } from "@/lib/store"
+import { AuthLoadingOverlay } from "@/components/auth/auth-loading-overlay"
 
 export default function DashboardLayout({
   children,
@@ -15,7 +16,8 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname() || ""
   const router = useRouter()
-  const { user, initialized } = useAuthStore()
+  const { user, initialized, isLoading } = useAuthStore()
+  const { t } = useTranslation()
 
   // Don't show user sidebar for proprietaire/admin routes as they have their own layouts
   const isSpecialDashboard = pathname.startsWith("/dashboard/proprietaire") ||
@@ -28,11 +30,17 @@ export default function DashboardLayout({
   }, [initialized, user, router])
 
   if (isSpecialDashboard) {
-    return <>{children}</>
+    return (
+      <>
+        <AuthLoadingOverlay isLoading={isLoading} message={t.common.loading} />
+        {children}
+      </>
+    )
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <AuthLoadingOverlay isLoading={isLoading} message={t.common.loading} />
       <UserSidebar />
       <div className="pl-64 flex-1 flex flex-col transition-all duration-300">
         <UserHeader />

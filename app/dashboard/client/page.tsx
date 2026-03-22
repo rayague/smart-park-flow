@@ -40,11 +40,11 @@ export default function ClientDashboard() {
         const amountSpent = reservations.reduce((acc, r) => acc + r.totalPrice, 0)
 
         return [
-            { label: "Total Bookings", value: totalBookings.toString(), icon: Calendar, color: "bg-blue-500/10 text-blue-500" },
-            { label: "Hours Parked", value: `${Math.round(totalHours)}h`, icon: Clock, color: "bg-orange-500/10 text-orange-500" },
-            { label: "Amount Spent", value: `€${amountSpent.toFixed(2)}`, icon: CreditCard, color: "bg-green-500/10 text-green-500" },
+            { label: t.userDashboard.stats.totalReservations, value: totalBookings.toString(), icon: Calendar, color: "bg-blue-500/10 text-blue-500" },
+            { label: t.userDashboard.stats.hoursParked || "Hours Parked", value: `${Math.round(totalHours)}h`, icon: Clock, color: "bg-orange-500/10 text-orange-500" },
+            { label: t.userDashboard.stats.totalSpent, value: `€${amountSpent.toFixed(2)}`, icon: CreditCard, color: "bg-green-500/10 text-green-500" },
         ]
-    }, [reservations])
+    }, [reservations, t.userDashboard.stats])
 
     return (
         <div className="space-y-8">
@@ -55,7 +55,7 @@ export default function ClientDashboard() {
                 className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary to-accent p-8 text-white"
             >
                 <div className="relative z-10">
-                    <h1 className="font-serif text-3xl font-bold mb-2">
+                    <h1 className="font-sans text-3xl font-bold mb-2">
                         {t.userDashboard.welcome}, {user?.name || "Client"}!
                     </h1>
                     <p className="opacity-90 max-w-xl">
@@ -65,7 +65,7 @@ export default function ClientDashboard() {
                         <Link href="/discover">
                             <Button size="lg" variant="secondary" className="gap-2">
                                 <MapPin className="h-4 w-4" />
-                                Find Parking
+                                {t.userDashboard.findParking}
                             </Button>
                         </Link>
                     </div>
@@ -105,12 +105,12 @@ export default function ClientDashboard() {
                     className="rounded-2xl glass p-6"
                 >
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-serif text-xl font-semibold">
-                            {t.userDashboard.navigation.reservations}
+                        <h3 className="font-sans text-xl font-semibold">
+                            {t.userDashboard.sections.activeReservations}
                         </h3>
                         <Link href="/dashboard/client/reservations">
                             <Button variant="ghost" size="sm" className="gap-1">
-                                View All <ArrowRight className="h-4 w-4" />
+                                {t.common.viewAll} <ArrowRight className="h-4 w-4" />
                             </Button>
                         </Link>
                     </div>
@@ -142,7 +142,7 @@ export default function ClientDashboard() {
                             ))
                         ) : (
                             <div className="p-8 text-center text-muted-foreground">
-                                No upcoming reservations
+                                {t.userDashboard.emptyReservations.title}
                             </div>
                         )}
                     </div>
@@ -158,12 +158,12 @@ export default function ClientDashboard() {
                     <div className="h-20 w-20 rounded-full bg-accent-box flex items-center justify-center mb-2">
                         <Car className="h-10 w-10 text-accent" />
                     </div>
-                    <h3 className="font-serif text-xl font-bold">Add Your Vehicle</h3>
+                    <h3 className="font-sans text-xl font-bold">{t.userDashboard.vehicle?.title || "Add Your Vehicle"}</h3>
                     <p className="text-muted-foreground max-w-xs">
-                        Register your vehicle to enable automatic license plate recognition and faster entry.
+                        {t.userDashboard.vehicle?.description || "Register your vehicle to enable automatic license plate recognition and faster entry."}
                     </p>
                     <Button className="mt-4">
-                        Register Vehicle
+                        {t.userDashboard.vehicle?.button || "Register Vehicle"}
                     </Button>
                 </motion.div>
             </div>

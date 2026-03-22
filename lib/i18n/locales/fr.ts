@@ -49,23 +49,25 @@ export const fr: Translations = {
         managers: "Gestionnaires",
         support: "Support",
         signIn: "Se connecter",
-        getStarted: "Démarrer",
+        getStarted: "Créer un compte",
     },
 
     // Landing Page
     landing: {
         badge: "Maintenant disponible dans 50+ villes",
-        heroTitle: "L'Avenir du",
+        heroTitle: "Le Stationnement",
         typingTexts: {
-            smartParking: "Parking Intelligent",
-            evCharging: "Charge Électrique",
-            urbanMobility: "Mobilité Urbaine",
-            easyBooking: "Réservation Facile",
+            smartParking: "Plus Intelligent",
+            evCharging: "Plus Électrique",
+            urbanMobility: "Plus Fluide",
+            easyBooking: "Sans Effort",
         },
-        heroDescription: "Trouvez, réservez et payez des places de parking en quelques secondes. Rejoignez des milliers de conducteurs qui gagnent du temps avec notre plateforme intelligente.",
+        heroDescription: "Trouvez, réservez et payez votre place en quelques secondes. Rejoignez des milliers de conducteurs qui transforment leur quotidien avec SmartPark.",
         startFree: "Commencer Gratuitement",
         watchDemo: "Voir la Démo",
         scrollToExplore: "Défiler pour explorer",
+        heroSearchPlaceholder: "Trouvez une ville, une adresse ou un parking...",
+        findParking: "Trouver un Parking",
 
         // Features
         features: {
@@ -181,6 +183,7 @@ export const fr: Translations = {
             privacy: "Politique de Confidentialité",
             cookies: "Politique de Cookies",
             copyright: "Tous droits réservés.",
+            madeWith: "Fait avec 💚 pour une mobilité durable",
         },
     },
 
@@ -198,21 +201,37 @@ export const fr: Translations = {
             signUpLink: "S'inscrire",
         },
         register: {
-            title: "Créer un Compte",
-            subtitle: "Rejoignez SmartPark et stationnez plus intelligemment",
+            title: "Rejoindre le Réseau",
+            subtitle: "Choisissez votre mode d'utilisation pour commencer l'aventure.",
             name: "Nom Complet",
-            email: "Email",
+            firstName: "Prénom",
+            lastName: "Nom",
+            email: "Adresse Email",
             password: "Mot de passe",
+            choosePassword: "Choisir un Mot de Passe",
+            passwordMinLength: "Minimum 8 caractères avec au moins un chiffre.",
             confirmPassword: "Confirmer le mot de passe",
             role: "Type de Compte",
             roles: {
                 user: "Conducteur",
-                manager: "Gestionnaire de Parking",
+                manager: "Propriétaire",
             },
-            terms: "J'accepte les Conditions d'Utilisation et la Politique de Confidentialité",
+            personalDetails: "Informations Personnelles",
+            vehicleInfo: "Infos Véhicule",
+            licensePlate: "Plaque d'Immatriculation",
+            professionalInfo: "Infos Professionnelles",
+            companyName: "Nom de l'Entreprise",
+            phone: "Téléphone de Contact",
+            security: "Sécurité",
+            termsTitle: "Conditions & Confidentialité",
+            terms: "J'accepte les conditions générales d'utilisation et la politique de confidentialité.",
             button: "Créer le Compte",
             hasAccount: "Déjà un compte ?",
             signInLink: "Se connecter",
+            requiredFields: "Tous les champs de cette étape sont requis",
+            successTitle: "Bienvenue sur SmartPark !",
+            successSubtitle: "Votre compte a été créé avec succès. Redirection vers votre tableau de bord...",
+            encrypted: "Sécurisé par cryptage AES-256.",
         },
         errors: {
             invalidEmail: "Veuillez entrer un email valide",
@@ -229,8 +248,7 @@ export const fr: Translations = {
         findParking: "Trouver un Parking",
 
         stats: {
-            totalReservations: "Total Réservations",
-            co2Saved: "CO2 Économisé",
+            totalReservations: "Total Réservations",            hoursParked: "Heures de Stationnement",            co2Saved: "CO2 Économisé",
             timeSaved: "Temps Gagné",
             totalSpent: "Total Dépensé",
             thisMonth: "Ce mois",
@@ -247,7 +265,11 @@ export const fr: Translations = {
             title: "Aucune Réservation Active",
             description: "Trouvez une place près de votre destination et réservez instantanément.",
         },
-
+        vehicle: {
+            title: "Ajoutez Votre Véhicule",
+            description: "Enregistrez votre véhicule pour permettre la reconnaissance automatique des plaques et une entrée plus rapide.",
+            button: "Enregistrer le Véhicule",
+        },
         evPromo: {
             badge: "Recharge VE",
             title: "Rechargez Pendant Votre Stationnement",

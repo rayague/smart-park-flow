@@ -7,9 +7,40 @@ import { useTranslation } from "@/lib/i18n"
 import { Search, Filter, Plus, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { supabase } from "@/lib/supabase"
 
 export default function AdminManagersPage() {
     const { t } = useTranslation()
+
+    const [loading, setLoading] = React.useState(true)
+    const [totalManagers, setTotalManagers] = React.useState(0)
+    const [pendingVerification, setPendingVerification] = React.useState(0)
+    const [activeFacilities, setActiveFacilities] = React.useState(0)
+    const [revokedLicenses, setRevokedLicenses] = React.useState(0)
+
+    React.useEffect(() => {
+        async function fetchManagerStats() {
+            try {
+                const [managersRes, pendingRes, activeRes, revokedRes] = await Promise.all([
+                    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "MANAGER"),
+                    supabase.from("parkings").select("id", { count: "exact", head: true }).eq("status", "INACTIVE"),
+                    supabase.from("parkings").select("id", { count: "exact", head: true }).eq("status", "ACTIVE"),
+                    supabase.from("parkings").select("id", { count: "exact", head: true }).eq("status", "MAINTENANCE"),
+                ])
+
+                setTotalManagers(managersRes.count ?? 0)
+                setPendingVerification(pendingRes.count ?? 0)
+                setActiveFacilities(activeRes.count ?? 0)
+                setRevokedLicenses(revokedRes.count ?? 0)
+            } catch (e) {
+                console.error("Failed to load admin manager stats:", e)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchManagerStats()
+    }, [])
 
     return (
         <div className="space-y-6">
@@ -36,10 +67,10 @@ export default function AdminManagersPage() {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {[
-                    { label: "Total Managers", value: "142", icon: Building2, color: "text-purple-500" },
-                    { label: "Pending Verification", value: "12", icon: Building2, color: "text-yellow-500" },
-                    { label: "Active Facilities", value: "385", icon: Building2, color: "text-green-500" },
-                    { label: "Revoked Licenses", value: "3", icon: Building2, color: "text-red-500" },
+                    { label: "Total Managers", value: loading ? "-" : totalManagers.toLocaleString(), icon: Building2, color: "text-purple-500" },
+                    { label: "Pending Verification", value: loading ? "-" : pendingVerification.toLocaleString(), icon: Building2, color: "text-yellow-500" },
+                    { label: "Active Facilities", value: loading ? "-" : activeFacilities.toLocaleString(), icon: Building2, color: "text-green-500" },
+                    { label: "Revoked Licenses", value: loading ? "-" : revokedLicenses.toLocaleString(), icon: Building2, color: "text-red-500" },
                 ].map((stat, i) => (
                     <motion.div
                         key={stat.label}

@@ -46,18 +46,20 @@ export default function ReservationsPage() {
                     </div>
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-serif text-lg font-bold">{booking.parkingName}</h3>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${booking.viewStatus === "active" ? "bg-green-500/10 text-green-500" :
+                            <h3 className="font-bold text-lg uppercase tracking-tight">{booking.parkingName}</h3>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${booking.viewStatus === "active" ? "bg-green-500/10 text-green-500" :
                                     booking.viewStatus === "upcoming" ? "bg-blue-500/10 text-blue-500" :
                                         "bg-secondary text-muted-foreground"
                                 }`}>
-                                {booking.viewStatus}
+                                {booking.viewStatus === "active" ? t.reservations.status.active : 
+                                 booking.viewStatus === "upcoming" ? t.reservations.status.pending : 
+                                 t.reservations.status.completed}
                             </span>
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
-                                Spot {booking.spotNumber}
+                                {t.booking.summary.spot} {booking.spotNumber}
                             </span>
                             <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
@@ -73,15 +75,12 @@ export default function ReservationsPage() {
 
                 <div className="flex items-center gap-4 self-end md:self-center">
                     <div className="text-right mr-4">
-                        <p className="text-sm text-muted-foreground">Total</p>
+                        <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t.booking.summary.total}</p>
                         <p className="font-bold text-lg">€{booking.totalPrice.toFixed(2)}</p>
                     </div>
-                    <Button variant="outline" className="gap-2">
+                    <Button variant="outline" className="gap-2 font-bold uppercase tracking-tight">
                         <QrCode className="h-4 w-4" />
                         Ticket
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
@@ -91,14 +90,14 @@ export default function ReservationsPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="font-serif text-3xl font-bold">{t.userDashboard.navigation.reservations}</h1>
+                <h1 className="font-heading text-3xl font-black tracking-tighter uppercase">{t.reservations.title}</h1>
             </div>
 
             <Tabs defaultValue="active" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 max-w-md mb-8">
-                    <TabsTrigger value="active">Active</TabsTrigger>
-                    <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                    <TabsTrigger value="past">History</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 max-w-md mb-8 bg-subtle p-1 rounded-xl">
+                    <TabsTrigger value="active" className="font-bold uppercase text-[10px] tracking-widest">{t.reservations.tabs.active}</TabsTrigger>
+                    <TabsTrigger value="upcoming" className="font-bold uppercase text-[10px] tracking-widest">{t.reservations.tabs.upcoming}</TabsTrigger>
+                    <TabsTrigger value="past" className="font-bold uppercase text-[10px] tracking-widest">{t.reservations.tabs.past}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="active" className="space-y-4">

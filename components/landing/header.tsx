@@ -73,7 +73,7 @@ export function Header() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent transition-transform group-hover:scale-110">
             <Car className="h-6 w-6 text-white" />
           </div>
-          <span className="font-serif text-xl font-bold">
+          <span className="font-sans text-xl font-bold">
             Smart<span className="text-primary">Park</span>
           </span>
         </Link>
@@ -115,25 +115,25 @@ export function Header() {
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20 transition-all p-0">
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-linear-to-br from-primary/10 to-accent/10 border border-primary/20 hover:border-primary/50 transition-all p-0">
                   <UserIcon className="h-5 w-5 text-primary" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="glass-strong w-56 p-2" sideOffset={8}>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1 p-2">
-                    <p className="text-sm font-medium leading-none">{user?.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                    <p className="text-sm font-black uppercase tracking-tight leading-none">{user?.name}</p>
+                    <p className="text-[10px] leading-none text-muted-foreground uppercase opacity-70 tracking-widest">{user?.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-border/50" />
                 <DropdownMenuItem asChild className="rounded-lg cursor-pointer hover:bg-secondary">
-                  <Link href="/dashboard" className="flex items-center gap-2 w-full">
+                  <Link href="/dashboard" className="flex items-center gap-2 w-full font-bold">
                     <LayoutDashboard className="h-4 w-4" />
-                    <span>Dashboard</span>
+                    <span>{t.common.dashboard}</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout} className="rounded-lg cursor-pointer hover:bg-destructive/10 text-destructive focus:text-destructive gap-2">
+                <DropdownMenuItem onClick={handleLogout} className="rounded-lg cursor-pointer hover:bg-destructive/10 text-destructive focus:text-destructive gap-2 font-bold">
                   <LogOut className="h-4 w-4" />
                   <span>{t.common.signOut}</span>
                 </DropdownMenuItem>
@@ -141,10 +141,10 @@ export function Header() {
             </DropdownMenu>
           ) : (
             <div className="flex items-center gap-3">
-              <Button variant="ghost" className="font-medium" asChild>
+              <Button variant="ghost" className="font-bold uppercase tracking-tight text-xs" asChild>
                 <Link href="/login">{t.nav.signIn}</Link>
               </Button>
-              <Button className="font-medium glow-primary bg-gradient-to-r from-primary to-accent" asChild>
+              <Button className="font-black uppercase tracking-tight text-xs h-10 px-5 rounded-xl glow-primary-sm bg-linear-to-r from-primary to-accent border-0" asChild>
                 <Link href="/register">{t.nav.getStarted}</Link>
               </Button>
             </div>
@@ -188,7 +188,7 @@ export function Header() {
             <div className="h-px bg-border/50" />
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between px-2">
-                <span className="text-sm font-medium text-muted-foreground">Settings</span>
+                <span className="text-sm font-medium text-muted-foreground">{t.common.settings}</span>
                 <div className="flex gap-2">
                   <LanguageToggle />
                   <ThemeToggle />

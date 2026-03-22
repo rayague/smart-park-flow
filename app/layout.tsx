@@ -33,6 +33,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          body { font-family: var(--font-space-grotesk), sans-serif !important; }
+          .font-serif, .font-sans { font-family: var(--font-space-grotesk), sans-serif !important; }
+        `}} />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

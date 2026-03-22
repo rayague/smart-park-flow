@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress"
 import { useTranslation } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/lib/store"
+import { AuthLoadingOverlay } from "@/components/auth/auth-loading-overlay"
 
 type Role = "client" | "proprietaire" | "admin" | null
 
@@ -129,21 +130,22 @@ export default function RegisterPage() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
+            <AuthLoadingOverlay isLoading={isLoading} message={t.common.loading} />
             {/* Background pattern */}
             <div className="absolute inset-0 grid-pattern opacity-10 pointer-events-none" />
 
             {/* Header */}
             <header className="relative z-10 p-8 flex justify-between items-center">
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent transition-transform group-hover:scale-110">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-primary to-accent transition-transform group-hover:scale-110">
                         <Car className="h-6 w-6 text-white" />
                     </div>
-                    <span className="font-serif text-xl font-bold">SmartPark</span>
+                    <span className="font-sans text-xl font-bold">SmartPark</span>
                 </Link>
                 <div className="flex items-center gap-4">
-                    <span className="text-sm text-muted-foreground hidden sm:inline">Already have an account?</span>
+                    <span className="text-sm text-muted-foreground hidden sm:inline">{t.auth.register.hasAccount}</span>
                     <Button variant="ghost" className="font-bold" asChild>
-                        <Link href="/login">Sign In</Link>
+                        <Link href="/login">{t.auth.register.signInLink}</Link>
                     </Button>
                 </div>
             </header>
@@ -161,8 +163,8 @@ export default function RegisterPage() {
                                 className="space-y-8 text-center"
                             >
                                 <div className="space-y-2">
-                                    <h1 className="text-4xl font-black font-serif">Join the network</h1>
-                                    <p className="text-muted-foreground">Select how you want to use SmartPark to begin your journey.</p>
+                                    <h1 className="text-4xl font-black font-sans">{t.auth.register.title}</h1>
+                                    <p className="text-muted-foreground">{t.auth.register.subtitle}</p>
                                 </div>
 
                                 <div className="grid sm:grid-cols-2 gap-6">
@@ -180,8 +182,8 @@ export default function RegisterPage() {
                                             <User className="h-10 w-10" />
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-xl font-black uppercase tracking-wider">Client</p>
-                                            <p className="text-sm text-muted-foreground">Find and book parking spots instantly.</p>
+                                            <p className="text-xl font-black uppercase tracking-wider">{t.auth.register.roles.user}</p>
+                                            <p className="text-sm text-muted-foreground">{t.landing.features.instant || "Find and book parking spots instantly."}</p>
                                         </div>
                                     </button>
 
@@ -199,8 +201,8 @@ export default function RegisterPage() {
                                             <Building2 className="h-10 w-10" />
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-xl font-black uppercase tracking-wider">Propriétaire</p>
-                                            <p className="text-sm text-muted-foreground">Manage your facilities and grow revenue.</p>
+                                            <p className="text-xl font-black uppercase tracking-wider">{t.auth.register.roles.manager}</p>
+                                            <p className="text-sm text-muted-foreground">{t.landing.footer.description || "Manage your facilities and grow revenue."}</p>
                                         </div>
                                     </button>
                                 </div>
@@ -209,9 +211,9 @@ export default function RegisterPage() {
                                     size="lg"
                                     onClick={handleNext}
                                     disabled={!role}
-                                    className="h-14 px-12 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary to-accent"
+                                    className="h-14 px-12 rounded-2xl text-lg font-bold bg-linear-to-r from-primary to-accent"
                                 >
-                                    Continue <ArrowRight className="ml-2 h-5 w-5" />
+                                    {t.common.next} <ArrowRight className="ml-2 h-5 w-5" />
                                 </Button>
                             </motion.div>
                         ) : step === 4 ? (
@@ -224,8 +226,8 @@ export default function RegisterPage() {
                                 <div className="h-20 w-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <CheckCircle2 className="h-12 w-12" />
                                 </div>
-                                <h1 className="text-3xl font-black font-serif">Welcome to SmartPark!</h1>
-                                <p className="text-muted-foreground max-w-xs mx-auto">Your account has been created successfully. Redirecting you to your dashboard...</p>
+                                <h1 className="text-3xl font-black font-sans">{t.auth.register.successTitle || "Welcome to SmartPark!"}</h1>
+                                <p className="text-muted-foreground max-w-xs mx-auto">{t.auth.register.successSubtitle || "Your account has been created successfully. Redirecting you to your dashboard..."}</p>
                             </motion.div>
                         ) : (
                             <motion.div
@@ -238,9 +240,9 @@ export default function RegisterPage() {
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <Button variant="ghost" size="sm" onClick={() => setStep(step - 1)} className="gap-2">
-                                            <ArrowLeft className="h-4 w-4" /> Back
+                                            <ArrowLeft className="h-4 w-4" /> {t.common.back}
                                         </Button>
-                                        <span className="text-xs font-black uppercase tracking-widest text-primary">Step {step} of 3</span>
+                                        <span className="text-xs font-black uppercase tracking-widest text-primary">{t.common.step || "Step"} {step} {t.common.of || "of"} 3</span>
                                     </div>
                                     <Progress value={progressValue} className="h-1.5" />
                                 </div>
@@ -248,10 +250,10 @@ export default function RegisterPage() {
                                 <div className="space-y-6">
                                     {step === 1 && (
                                         <div className="space-y-4">
-                                            <h2 className="text-3xl font-black font-serif">Personal Details</h2>
+                                            <h2 className="text-3xl font-black font-sans">{t.auth.register.personalDetails || "Personal Details"}</h2>
                                             <div className="grid sm:grid-cols-2 gap-4">
                                                 <div className="space-y-2">
-                                                    <label className="text-sm font-bold uppercase tracking-tight ml-1">First Name</label>
+                                                    <label className="text-sm font-bold uppercase tracking-tight ml-1">{t.auth.register.firstName || "First Name"}</label>
                                                     <Input
                                                         value={formData.firstName}
                                                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
@@ -260,7 +262,7 @@ export default function RegisterPage() {
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <label className="text-sm font-bold uppercase tracking-tight ml-1">Last Name</label>
+                                                    <label className="text-sm font-bold uppercase tracking-tight ml-1">{t.auth.register.lastName || "Last Name"}</label>
                                                     <Input
                                                         value={formData.lastName}
                                                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
@@ -270,7 +272,7 @@ export default function RegisterPage() {
                                                 </div>
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-sm font-bold uppercase tracking-tight ml-1">Email Address</label>
+                                                <label className="text-sm font-bold uppercase tracking-tight ml-1">{t.auth.register.email}</label>
                                                 <div className="relative">
                                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                                     <Input
@@ -287,12 +289,12 @@ export default function RegisterPage() {
 
                                     {step === 2 && (
                                         <div className="space-y-4">
-                                            <h2 className="text-3xl font-black font-serif">
-                                                {role === "client" ? "Vehicle Info" : "Professional Info"}
+                                            <h2 className="text-3xl font-black font-sans">
+                                                {role === "client" ? (t.auth.register.vehicleInfo || "Vehicle Info") : (t.auth.register.professionalInfo || "Professional Info")}
                                             </h2>
                                             {role === "client" ? (
                                                 <div className="space-y-2">
-                                                    <label className="text-sm font-bold uppercase tracking-tight ml-1">License Plate</label>
+                                                    <label className="text-sm font-bold uppercase tracking-tight ml-1">{t.auth.register.licensePlate || "License Plate"}</label>
                                                     <div className="relative">
                                                         <Car className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                                         <Input
@@ -306,7 +308,7 @@ export default function RegisterPage() {
                                             ) : (
                                                 <div className="space-y-4">
                                                     <div className="space-y-2">
-                                                        <label className="text-sm font-bold uppercase tracking-tight ml-1">Company Name</label>
+                                                        <label className="text-sm font-bold uppercase tracking-tight ml-1">{t.auth.register.companyName || "Company Name"}</label>
                                                         <div className="relative">
                                                             <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                                             <Input
@@ -318,7 +320,7 @@ export default function RegisterPage() {
                                                         </div>
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <label className="text-sm font-bold uppercase tracking-tight ml-1">Contact Phone</label>
+                                                        <label className="text-sm font-bold uppercase tracking-tight ml-1">{t.auth.register.phone || "Contact Phone"}</label>
                                                         <div className="relative">
                                                             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                                             <Input
@@ -336,9 +338,9 @@ export default function RegisterPage() {
 
                                     {step === 3 && (
                                         <div className="space-y-4">
-                                            <h2 className="text-3xl font-black font-serif">Security</h2>
+                                            <h2 className="text-3xl font-black font-sans">{t.auth.register.security || "Security"}</h2>
                                             <div className="space-y-2">
-                                                <label className="text-sm font-bold uppercase tracking-tight ml-1">Choose Password</label>
+                                                <label className="text-sm font-bold uppercase tracking-tight ml-1">{t.auth.register.choosePassword || "Choose Password"}</label>
                                                 <div className="relative">
                                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                                     <Input
@@ -349,7 +351,7 @@ export default function RegisterPage() {
                                                         className="h-14 rounded-2xl bg-background border-border/50 focus:border-primary pl-12"
                                                     />
                                                 </div>
-                                                <p className="text-[10px] text-muted-foreground ml-1">Minimum 8 characters with at least one number.</p>
+                                                <p className="text-[10px] text-muted-foreground ml-1">{t.auth.register.passwordMinLength || "Minimum 8 characters with at least one number."}</p>
                                             </div>
                                             <div className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10">
                                                 <Checkbox
@@ -360,9 +362,9 @@ export default function RegisterPage() {
                                                 />
                                                 <div className="space-y-1">
                                                     <label htmlFor="agree" className="text-sm font-bold select-none cursor-pointer">
-                                                        Terms & Privacy Policy
+                                                        {t.auth.register.termsTitle || "Terms & Privacy Policy"}
                                                     </label>
-                                                    <p className="text-xs text-muted-foreground">I acknowledge that I have read and agree to the general terms of service.</p>
+                                                    <p className="text-xs text-muted-foreground">{t.auth.register.terms || "I acknowledge that I have read and agree to the general terms of service."}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -373,14 +375,14 @@ export default function RegisterPage() {
                                     <Button
                                         onClick={handleNext}
                                         disabled={!isStepValid() || isLoading}
-                                        className="w-full h-16 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary to-accent transition-all animate-in fade-in"
+                                        className="w-full h-16 rounded-2xl text-lg font-bold bg-linear-to-r from-primary to-accent transition-all animate-in fade-in"
                                     >
-                                        {isLoading ? "Loading..." : step === 3 ? "Create Account" : "Next Step"}
+                                        {isLoading ? t.common.loading : step === 3 ? (t.auth.register.button || "Create Account") : (t.common.next || "Next Step")}
                                         <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>
                                     {!isStepValid() && (
                                         <p className="text-[10px] text-center text-destructive mt-3 uppercase font-bold tracking-widest">
-                                            All fields in this step are required
+                                            {t.auth.register.requiredFields || "All fields in this step are required"}
                                         </p>
                                     )}
                                 </div>
@@ -392,7 +394,7 @@ export default function RegisterPage() {
 
             {/* Support footer */}
             <footer className="relative z-10 p-8 text-center">
-                <p className="text-xs text-muted-foreground">© 2026 SmartPark Global. Protected by AES-256 encryption.</p>
+                <p className="text-xs text-muted-foreground">© 2026 SmartPark Global. {t.auth.register.encrypted || "Protected by AES-256 encryption."}</p>
             </footer>
         </div>
     )

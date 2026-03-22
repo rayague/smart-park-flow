@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/lib/i18n"
+import { supabase } from "@/lib/supabase"
 import {
     BarChart,
     Bar,
@@ -32,21 +33,125 @@ import {
     Cell
 } from "recharts"
 
-const growthData = [
-    { name: "Week 1", users: 120, revenue: 5400 },
-    { name: "Week 2", users: 240, revenue: 8900 },
-    { name: "Week 3", users: 480, revenue: 15600 },
-    { name: "Week 4", users: 950, revenue: 32400 },
-]
-
-const userDistribution = [
-    { name: "Regular Users", value: 850, color: "#2563eb" },
-    { name: "Managers", value: 142, color: "#8b5cf6" },
-    { name: "Admins", value: 8, color: "#ef4444" },
-]
+type WeeklyPoint = { name: string; users: number; revenue: number }
+type DistributionPoint = { name: string; value: number; color: string }
 
 export default function AdminAnalyticsPage() {
     const { t } = useTranslation()
+
+    const [loading, setLoading] = React.useState(true)
+    const [growthData, setGrowthData] = React.useState<WeeklyPoint[]>([])
+    const [userDistribution, setUserDistribution] = React.useState<DistributionPoint[]>([])
+    const [activeUsers7d, setActiveUsers7d] = React.useState<number | null>(null)
+    const [grossRevenue, setGrossRevenue] = React.useState<number | null>(null)
+    const [totalFacilities, setTotalFacilities] = React.useState<number | null>(null)
+    const [avgTransaction, setAvgTransaction] = React.useState<number | null>(null)
+
+    React.useEffect(() => {
+        async function fetchAnalytics() {
+            setLoading(true)
+            try {
+                const now = new Date()
+                const start7d = new Date(now)
+                start7d.setDate(now.getDate() - 7)
+
+                const start30d = new Date(now)
+                start30d.setDate(now.getDate() - 30)
+
+                const weeks: Array<{ label: string; start: Date; end: Date }> = []
+                for (let i = 3; i >= 0; i--) {
+                    const end = new Date(now)
+                    end.setDate(now.getDate() - i * 7)
+                    const start = new Date(end)
+                    start.setDate(end.getDate() - 7)
+                    weeks.push({ label: `Week ${4 - i}`, start, end })
+                }
+
+                const [profilesRes, facilitiesRes, reservations30dRes] = await Promise.all([
+                    supabase.from("profiles").select("id, role"),
+                    supabase.from("parkings").select("id", { count: "exact", head: true }),
+                    supabase
+                        .from("reservations")
+                        .select("id, total_price, created_at")
+                        .gte("created_at", start30d.toISOString())
+                        .order("created_at", { ascending: true }),
+                ])
+
+                const reservations7dRes = await supabase
+                    .from("reservations")
+                    .select("user_id")
+                    .gte("created_at", start7d.toISOString())
+
+                if (!reservations7dRes.error) {
+                    const setUsers = new Set((reservations7dRes.data || []).map((r: any) => r.user_id).filter(Boolean))
+                    setActiveUsers7d(setUsers.size)
+                } else {
+                    setActiveUsers7d(0)
+                }
+
+                if (!reservations30dRes.error) {
+                    const rows = reservations30dRes.data || []
+                    const sum = rows.reduce((acc: number, r: any) => acc + (Number(r.total_price) || 0), 0)
+                    setGrossRevenue(sum)
+                    setAvgTransaction(rows.length ? sum / rows.length : 0)
+
+                    const weekly: WeeklyPoint[] = weeks.map((w) => {
+                        const inRange = rows.filter((r: any) => {
+                            const d = new Date(r.created_at)
+                            return d >= w.start && d < w.end
+                        })
+                        const revenue = inRange.reduce((acc: number, r: any) => acc + (Number(r.total_price) || 0), 0)
+                        const users = new Set(inRange.map((r: any) => r.id))
+                        return { name: w.label, users: inRange.length, revenue }
+                    })
+                    setGrowthData(weekly)
+                } else {
+                    setGrossRevenue(0)
+                    setAvgTransaction(0)
+                    setGrowthData(weeks.map((w) => ({ name: w.label, users: 0, revenue: 0 })))
+                }
+
+                setTotalFacilities(facilitiesRes.count ?? 0)
+
+                const roleCounts = new Map<string, number>([
+                    ["USER", 0],
+                    ["MANAGER", 0],
+                    ["ADMIN", 0],
+                ])
+                for (const p of profilesRes.data || []) {
+                    const role = (p as any).role
+                    if (roleCounts.has(role)) roleCounts.set(role, (roleCounts.get(role) || 0) + 1)
+                }
+
+                setUserDistribution([
+                    { name: "Regular Users", value: roleCounts.get("USER") || 0, color: "#2563eb" },
+                    { name: "Managers", value: roleCounts.get("MANAGER") || 0, color: "#8b5cf6" },
+                    { name: "Admins", value: roleCounts.get("ADMIN") || 0, color: "#ef4444" },
+                ])
+            } catch (e) {
+                console.error("Failed to load admin analytics:", e)
+                setGrowthData([
+                    { name: "Week 1", users: 0, revenue: 0 },
+                    { name: "Week 2", users: 0, revenue: 0 },
+                    { name: "Week 3", users: 0, revenue: 0 },
+                    { name: "Week 4", users: 0, revenue: 0 },
+                ])
+                setUserDistribution([
+                    { name: "Regular Users", value: 0, color: "#2563eb" },
+                    { name: "Managers", value: 0, color: "#8b5cf6" },
+                    { name: "Admins", value: 0, color: "#ef4444" },
+                ])
+                setActiveUsers7d(0)
+                setGrossRevenue(0)
+                setTotalFacilities(0)
+                setAvgTransaction(0)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchAnalytics()
+    }, [])
 
     return (
         <div className="space-y-6">
@@ -73,10 +178,34 @@ export default function AdminAnalyticsPage() {
             {/* High Level Stats */}
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {[
-                    { label: "Active Users (7d)", value: "2,840", trend: "+15.2%", up: true, icon: Users },
-                    { label: "Gross Revenue", value: "€142.5K", trend: "+8.4%", up: true, icon: DollarSign },
-                    { label: "Total Facilities", value: "385", trend: "+2.1%", up: true, icon: Building2 },
-                    { label: "Avg. Transaction", value: "€12.40", trend: "-1.5%", up: false, icon: Activity },
+                    {
+                        label: "Active Users (7d)",
+                        value: loading ? "-" : (activeUsers7d ?? 0).toLocaleString(),
+                        trend: "",
+                        up: true,
+                        icon: Users,
+                    },
+                    {
+                        label: "Gross Revenue",
+                        value: loading ? "-" : `€${Math.round(grossRevenue ?? 0).toLocaleString()}`,
+                        trend: "",
+                        up: true,
+                        icon: DollarSign,
+                    },
+                    {
+                        label: "Total Facilities",
+                        value: loading ? "-" : (totalFacilities ?? 0).toLocaleString(),
+                        trend: "",
+                        up: true,
+                        icon: Building2,
+                    },
+                    {
+                        label: "Avg. Transaction",
+                        value: loading ? "-" : `€${(avgTransaction ?? 0).toFixed(2)}`,
+                        trend: "",
+                        up: true,
+                        icon: Activity,
+                    },
                 ].map((stat, i) => (
                     <motion.div
                         key={stat.label}
@@ -87,9 +216,12 @@ export default function AdminAnalyticsPage() {
                     >
                         <div className="flex items-center justify-between mb-2">
                             <stat.icon className="h-4 w-4 text-muted-foreground" />
-                            <div className={`flex items-center gap-1 text-[10px] font-bold ${stat.up ? "text-green-500" : "text-red-500"}`}>
-                                {stat.trend} {stat.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                            </div>
+                            {stat.trend ? (
+                                <div className={`flex items-center gap-1 text-[10px] font-bold ${stat.up ? "text-green-500" : "text-red-500"}`}>
+                                    {stat.trend}{" "}
+                                    {stat.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                                </div>
+                            ) : null}
                         </div>
                         <p className="text-sm text-muted-foreground">{stat.label}</p>
                         <p className="text-2xl font-black">{stat.value}</p>

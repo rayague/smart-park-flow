@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion"
 import { Check, Star, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n"
 
 const plans = [
   {
@@ -66,6 +67,7 @@ function PricingCard({
   plan: typeof plans[0]
   index: number 
 }) {
+  const { t } = useTranslation()
   const ref = React.useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-50px" })
 
@@ -96,14 +98,14 @@ function PricingCard({
               className="flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
             >
               <Star className="h-3 w-3 fill-current" />
-              Most Popular
+              {t.landing.pricingSection.mostPopular}
             </motion.div>
           </div>
         )}
 
         {/* Header */}
         <div className="mb-6 text-center">
-          <h3 className="mb-1 font-serif text-xl font-semibold">{plan.name}</h3>
+          <h3 className="mb-1 font-sans text-xl font-black uppercase tracking-tight">{plan.name}</h3>
           <p className="text-sm text-muted-foreground">{plan.description}</p>
         </div>
 
@@ -132,10 +134,10 @@ function PricingCard({
         {/* CTA */}
         <Button
           className={cn(
-            "w-full",
+            "w-full h-12 rounded-xl font-bold transition-all duration-300",
             plan.popular 
-              ? "bg-primary glow-primary-sm" 
-              : "bg-secondary hover:bg-secondary/80"
+              ? "bg-linear-to-r from-primary to-accent text-white border-0 glow-primary-sm hover:scale-[1.02] active:scale-[0.98]" 
+              : "glass border-white/10 hover:bg-white/10"
           )}
         >
           {plan.cta}
@@ -146,8 +148,36 @@ function PricingCard({
 }
 
 export function PricingSection() {
+  const { t } = useTranslation()
   const titleRef = React.useRef(null)
   const isTitleInView = useInView(titleRef, { once: true })
+
+  const localizedPlans = [
+    {
+      ...plans[0],
+      name: t.landing.pricingSection.free.name,
+      description: t.landing.pricingSection.free.description,
+      period: t.landing.pricingSection.free.price === "$0" ? t.landing.pricingSection.plans?.forever || "forever" : t.landing.pricingSection.plans?.month || "month",
+      features: t.landing.pricingSection.free.features,
+      cta: t.landing.pricingSection.choosePlan,
+    },
+    {
+      ...plans[1],
+      name: t.landing.pricingSection.pro.name,
+      description: t.landing.pricingSection.pro.description,
+      period: t.landing.pricingSection.plans?.month || "month",
+      features: t.landing.pricingSection.pro.features,
+      cta: t.landing.pricingSection.choosePlan,
+    },
+    {
+      ...plans[2],
+      name: t.landing.pricingSection.business.name,
+      description: t.landing.pricingSection.business.description,
+      period: t.landing.pricingSection.plans?.month || "month",
+      features: t.landing.pricingSection.business.features,
+      cta: t.landing.pricingSection.choosePlan,
+    },
+  ]
 
   return (
     <section id="pricing" className="relative py-24 overflow-hidden">
@@ -170,22 +200,21 @@ export function PricingSection() {
             className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2"
           >
             <Zap className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Pricing</span>
+            <span className="text-sm font-medium text-primary">{t.nav.pricing}</span>
           </motion.div>
           
-          <h2 className="mb-4 font-serif text-3xl font-bold sm:text-4xl lg:text-5xl text-balance">
-            Simple, transparent <span className="text-gradient-primary">pricing</span>
+          <h2 className="mb-4 font-sans text-3xl font-black sm:text-4xl lg:text-5xl text-balance uppercase tracking-tighter">
+            {t.landing.pricingSection.title}
           </h2>
           
           <p className="text-lg text-muted-foreground">
-            Choose the plan that fits your parking needs. 
-            All plans include a 14-day free trial.
+            {t.landing.pricingSection.subtitle}
           </p>
         </motion.div>
 
         {/* Pricing Cards */}
         <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
-          {plans.map((plan, index) => (
+          {localizedPlans.map((plan, index) => (
             <PricingCard key={plan.name} plan={plan} index={index} />
           ))}
         </div>
@@ -197,15 +226,14 @@ export function PricingSection() {
           transition={{ delay: 0.6 }}
           className="mx-auto mt-12 max-w-2xl rounded-2xl glass p-8 text-center"
         >
-          <h3 className="mb-2 font-serif text-xl font-semibold">
-            Need a custom solution?
+          <h3 className="mb-2 font-sans text-xl font-black uppercase tracking-tight">
+            {t.landing.pricingSection.business.name} Extra?
           </h3>
           <p className="mb-4 text-muted-foreground">
-            Contact us for enterprise plans with custom pricing, dedicated support, 
-            and tailored features for your organization.
+            {t.landing.pricingSection.business.description}
           </p>
-          <Button variant="outline" className="gap-2 bg-transparent">
-            Contact Enterprise Sales
+          <Button variant="outline" className="gap-2 bg-transparent border-white/20 hover:bg-white/10 font-bold">
+            {t.landing.pricingSection.choosePlan}
           </Button>
         </motion.div>
       </div>

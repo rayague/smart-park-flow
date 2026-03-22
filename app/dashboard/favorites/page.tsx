@@ -65,8 +65,8 @@ export default function FavoritesPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="font-serif text-3xl font-bold">{t.userDashboard.navigation.favorites}</h1>
-                <p className="text-muted-foreground">Your saved parking locations for quick access</p>
+                <h1 className="font-heading text-3xl font-black tracking-tighter uppercase">{t.userDashboard.navigation.favorites}</h1>
+                <p className="text-muted-foreground">{t.userDashboard.favorites.subtitle}</p>
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -108,8 +108,8 @@ export default function FavoritesPage() {
                                 </div>
 
                                 <Link href={`/booking/${parking.parkingId}`}>
-                                    <Button size="sm" className="gap-2">
-                                        Book Now
+                                    <Button size="sm" className="gap-2 font-bold uppercase tracking-tight">
+                                        {t.common.bookNow}
                                         <ArrowRight className="h-4 w-4" />
                                     </Button>
                                 </Link>
@@ -119,8 +119,8 @@ export default function FavoritesPage() {
                 ))}
 
                 {favorites.length === 0 && (
-                    <div className="sm:col-span-2 lg:col-span-3 rounded-2xl glass p-10 text-center text-muted-foreground">
-                        No favorites yet.
+                    <div className="sm:col-span-2 lg:col-span-3 rounded-2xl glass p-10 text-center text-muted-foreground font-medium">
+                        {t.userDashboard.favorites.empty}
                     </div>
                 )}
 
@@ -134,12 +134,12 @@ export default function FavoritesPage() {
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-icon-box">
                         <Star className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className="font-semibold text-lg">Add Favorites</h3>
+                    <h3 className="font-bold text-lg uppercase tracking-tight">{t.userDashboard.favorites.addTitle}</h3>
                     <p className="mt-2 text-sm text-muted-foreground mb-4">
-                        Browse parkings and save them here for faster booking.
+                        {t.userDashboard.favorites.addSubtitle}
                     </p>
                     <Link href="/discover">
-                        <Button variant="outline">Browse Parkings</Button>
+                        <Button variant="outline" className="font-bold uppercase tracking-tight">{t.userDashboard.favorites.browseButton}</Button>
                     </Link>
                 </motion.div>
             </div>
