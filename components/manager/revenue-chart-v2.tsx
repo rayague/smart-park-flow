@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
     AreaChart,
     Area,
@@ -28,7 +28,7 @@ import {
 import { cn } from "@/lib/utils"
 
 interface RevenueChartProps {
-    readonly reservations: Reservation[]
+    reservations: Reservation[]
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {

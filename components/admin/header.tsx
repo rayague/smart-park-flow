@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { motion } from "framer-motion"
-import { Bell, Search, Settings, Shield } from "lucide-react"
+import { Bell, Search, Settings, Shield, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -12,7 +12,7 @@ import { useTranslation } from "@/lib/i18n"
 
 export function AdminHeader() {
     const { user } = useAuthStore()
-    const { notifications, fetchNotifications } = useUIStore()
+    const { notifications, fetchNotifications, toggleSidebar } = useUIStore()
     const { t } = useTranslation()
 
     React.useEffect(() => {
@@ -25,10 +25,20 @@ export function AdminHeader() {
         <motion.header
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border/50 glass px-6"
+            className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border/50 glass px-4 md:px-6"
         >
+            {/* Mobile Menu Toggle */}
+            <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="lg:hidden h-9 w-9"
+            >
+                <Menu className="h-5 w-5" />
+            </Button>
+
             {/* Search */}
-            <div className="flex-1 max-w-md">
+            <div className="flex-1 max-w-sm md:max-w-md hidden sm:block">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input

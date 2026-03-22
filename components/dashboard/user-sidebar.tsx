@@ -17,18 +17,26 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useAuthStore } from "@/lib/store"
+import { useAuthStore, useUIStore } from "@/lib/store"
 import { useTranslation } from "@/lib/i18n"
 import { useLogout } from "@/lib/use-logout"
 
 export function UserSidebar() {
     const pathname = usePathname()
+    const { isSidebarOpen, setSidebarOpen, toggleSidebar } = useUIStore()
     const [isCollapsed, setIsCollapsed] = React.useState(false)
     const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false)
     const { user, logout } = useAuthStore()
     const { t } = useTranslation()
 
     const handleLogout = useLogout()
+
+    // Close sidebar on mobile when route changes
+    React.useEffect(() => {
+        if (window.innerWidth < 1024) {
+            setSidebarOpen(false)
+        }
+    }, [pathname, setSidebarOpen])
 
     const navItems = [
         {
@@ -67,12 +75,29 @@ export function UserSidebar() {
 
     return (
         <>
+        {/* Mobile Overlay */}
+        <AnimatePresence>
+            {isSidebarOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setSidebarOpen(false)}
+                    className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+                />
+            )}
+        </AnimatePresence>
+
         <motion.aside
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
+            initial={false}
+            animate={{ 
+                x: isSidebarOpen ? 0 : -320,
+                width: isCollapsed ? 80 : 256
+            }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className={cn(
-                "fixed left-0 top-0 z-40 flex h-screen flex-col glass-strong border-r border-border/50 transition-all duration-300",
-                isCollapsed ? "w-[72px]" : "w-64"
+                "fixed left-0 top-0 z-50 flex h-screen flex-col glass-strong border-r border-border/50 transition-all duration-300",
+                "lg:sticky lg:left-0 lg:translate-x-0"
             )}
         >
             {/* Logo */}
@@ -82,12 +107,12 @@ export function UserSidebar() {
                         <Car className="h-5 w-5 text-white" />
                     </div>
                     <AnimatePresence>
-                        {!isCollapsed && (
+                        {(!isCollapsed || isSidebarOpen) && (
                             <motion.span
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -10 }}
-                                className="font-serif text-lg font-bold"
+                                className="font-heading text-lg font-black uppercase tracking-tighter"
                             >
                                 Smart<span className="text-primary">Park</span>
                             </motion.span>
@@ -98,7 +123,13 @@ export function UserSidebar() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    onClick={() => {
+                        if (window.innerWidth < 1024) {
+                            setSidebarOpen(false)
+                        } else {
+                            setIsCollapsed(!isCollapsed)
+                        }
+                    }}
                     className="h-8 w-8"
                 >
                     {isCollapsed ? (

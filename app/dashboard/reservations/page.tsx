@@ -56,29 +56,29 @@ export default function ReservationsPage() {
                                  t.reservations.status.completed}
                             </span>
                         </div>
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
+                        <div className="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground mt-3 md:mt-0">
+                            <span className="flex items-center gap-1.5 bg-secondary/30 px-2 py-1 rounded-lg">
+                                <MapPin className="h-3 w-3 text-primary" />
                                 {t.booking.summary.spot} {booking.spotNumber}
                             </span>
-                            <span className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
+                            <span className="flex items-center gap-1.5 bg-secondary/30 px-2 py-1 rounded-lg">
+                                <Calendar className="h-3 w-3 text-primary" />
                                 {format(booking.startTime, "MMM d, yyyy")}
                             </span>
-                            <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
+                            <span className="flex items-center gap-1.5 bg-secondary/30 px-2 py-1 rounded-lg">
+                                <Clock className="h-3 w-3 text-primary" />
                                 {format(booking.startTime, "HH:mm")} - {format(booking.endTime, "HH:mm")}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 self-end md:self-center">
-                    <div className="text-right mr-4">
-                        <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t.booking.summary.total}</p>
-                        <p className="font-bold text-lg">€{booking.totalPrice.toFixed(2)}</p>
+                <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-border/50">
+                    <div className="text-left md:text-right md:mr-4">
+                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{t.booking.summary.total}</p>
+                        <p className="font-black text-xl text-primary">€{booking.totalPrice.toFixed(2)}</p>
                     </div>
-                    <Button variant="outline" className="gap-2 font-bold uppercase tracking-tight">
+                    <Button variant="outline" className="gap-2 font-black uppercase tracking-tighter hover:bg-primary hover:text-white transition-all">
                         <QrCode className="h-4 w-4" />
                         Ticket
                     </Button>

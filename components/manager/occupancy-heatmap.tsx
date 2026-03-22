@@ -3,41 +3,14 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { useTranslation } from "@/lib/i18n"
+import { Reservation } from "@/lib/store"
+import { getHours, getDay } from "date-fns"
 
-// Occupancy data for each hour of the week
-const occupancyData = [
-    // Sunday
-    [20, 25, 30, 28, 35, 45, 55, 65, 75, 85, 90, 95, 92, 88, 82, 78, 72, 68, 60, 50, 40, 35, 30, 25],
-    // Monday
-    [15, 12, 10, 10, 15, 35, 65, 85, 95, 98, 95, 92, 88, 90, 92, 95, 98, 90, 75, 60, 45, 35, 25, 18],
-    // Tuesday
-    [15, 12, 10, 10, 15, 38, 68, 88, 95, 98, 96, 94, 90, 92, 94, 96, 98, 92, 78, 62, 48, 38, 28, 20],
-    // Wednesday
-    [18, 15, 12, 12, 18, 40, 70, 90, 96, 99, 97, 95, 92, 94, 96, 97, 99, 94, 80, 65, 50, 40, 30, 22],
-    // Thursday
-    [16, 14, 11, 11, 16, 36, 66, 86, 94, 97, 95, 93, 89, 91, 93, 95, 97, 91, 76, 61, 46, 36, 26, 19],
-    // Friday
-    [18, 15, 12, 12, 18, 42, 72, 92, 98, 100, 98, 96, 94, 96, 98, 100, 98, 85, 70, 55, 42, 35, 28, 22],
-    // Saturday
-    [25, 22, 18, 16, 20, 30, 45, 60, 75, 88, 95, 98, 96, 92, 88, 85, 82, 78, 72, 65, 55, 45, 38, 30],
-]
-
-const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-const hours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, "0")}:00`)
-
-function getColor(value: number): string {
-    if (value >= 90) return "bg-red-500"
-    if (value >= 75) return "bg-orange-500"
-    if (value >= 50) return "bg-yellow-500"
-    if (value >= 25) return "bg-green-500"
-    return "bg-emerald-300"
+interface OccupancyHeatmapProps {
+    reservations: Reservation[]
 }
 
-function getOpacity(value: number): number {
-    return 0.3 + (value / 100) * 0.7
-}
-
-export function OccupancyHeatmap() {
+export function OccupancyHeatmap({ reservations }: OccupancyHeatmapProps) {
     const { t } = useTranslation()
     const [hoveredCell, setHoveredCell] = React.useState<{
         day: number
@@ -45,15 +18,46 @@ export function OccupancyHeatmap() {
         value: number
     } | null>(null)
 
+    // Calculate real occupancy data from reservations
+    const occupancyData = React.useMemo(() => {
+        // Initialize 7x24 grid with 0s
+        const grid = Array.from({ length: 7 }, () => Array(24).fill(0))
+        
+        // Count active/completed reservations per slot
+        reservations.forEach(res => {
+            if (res.status === 'cancelled') return
+            
+            const start = new Date(res.startTime)
+            const end = new Date(res.endTime)
+            
+            // For simplicity, we mark only the start hour's slot
+            // In a pro version, we would loop between start and end hours
+            const day = getDay(start) // 0 (Sun) to 6 (Sat)
+            const hour = getHours(start)
+            
+            if (day >= 0 && day < 7 && hour >= 0 && hour < 24) {
+                grid[day][hour] += 1
+            }
+        })
+
+        // Normalize data to a 0-100 percentage scale for the heatmap
+        // We assume 10 is "max occupancy" for the visualization scale if data is sparse
+        const maxVal = Math.max(...grid.flat(), 5) 
+        return grid.map(dayRow => dayRow.map(val => Math.min(Math.round((val / maxVal) * 100), 100)))
+    }, [reservations])
+
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    const hours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, "0")}:00`)
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="rounded-2xl glass p-6"
+            className="rounded-2xl glass p-4 sm:p-6 w-full overflow-hidden"
         >
-            <div className="mb-6 flex items-center justify-between">
-                <h3 className="font-serif text-xl font-semibold">
+            <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <h3 className="font-heading text-xl font-black uppercase tracking-tighter">
                     {t.managerDashboard.sections.occupancyHeatmap}
                 </h3>
 
@@ -61,42 +65,47 @@ export function OccupancyHeatmap() {
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <div className="flex gap-0.5">
-                            <div className="h-3 w-3 rounded-sm bg-emerald-300" />
-                            <div className="h-3 w-3 rounded-sm bg-green-500" />
-                            <div className="h-3 w-3 rounded-sm bg-yellow-500" />
-                            <div className="h-3 w-3 rounded-sm bg-orange-500" />
-                            <div className="h-3 w-3 rounded-sm bg-red-500" />
+                            <div className="h-3 w-3 rounded-sm bg-emerald-500/20" />
+                            <div className="h-3 w-3 rounded-sm bg-emerald-500/50" />
+                            <div className="h-3 w-3 rounded-sm bg-emerald-500" />
+                            <div className="h-3 w-3 rounded-sm bg-primary" />
+                            <div className="h-3 w-3 rounded-sm bg-accent" />
                         </div>
-                        <span className="text-xs text-muted-foreground">0% - 100%</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">0% - 100%</span>
                     </div>
                 </div>
             </div>
 
             {/* Heatmap Grid */}
-            <div className="overflow-x-auto">
-                <div className="min-w-[600px]">
+            <div className="overflow-x-auto pb-4 scrollbar-hide">
+                <div className="min-w-[500px]">
                     {/* Hour labels */}
-                    <div className="mb-1 flex pl-12">
-                        {hours.filter((_, i) => i % 3 === 0).map((hour) => (
-                            <div key={hour} className="flex-1 text-center text-xs text-muted-foreground">
+                    <div className="mb-2 flex pl-10">
+                        {hours.filter((_, i) => i % 4 === 0).map((hour) => (
+                            <div key={hour} className="flex-1 text-center text-[10px] font-black uppercase tracking-tighter text-muted-foreground/50">
                                 {hour}
                             </div>
                         ))}
                     </div>
 
                     {/* Grid */}
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                         {days.map((day, dayIndex) => (
                             <div key={day} className="flex items-center gap-2">
-                                <span className="w-10 text-xs text-muted-foreground text-right">
+                                <span className="w-8 text-[10px] font-black uppercase tracking-tighter text-muted-foreground">
                                     {day}
                                 </span>
-                                <div className="flex flex-1 gap-0.5">
+                                <div className="flex flex-1 gap-1">
                                     {occupancyData[dayIndex].map((value, hourIndex) => (
                                         <motion.div
                                             key={`${dayIndex}-${hourIndex}`}
-                                            className={`h-6 flex-1 rounded-sm cursor-pointer transition-all ${getColor(value)}`}
-                                            style={{ opacity: getOpacity(value) }}
+                                            className={cn(
+                                                "h-6 flex-1 rounded-sm cursor-pointer transition-all",
+                                                value === 0 ? "bg-secondary/20" : 
+                                                value < 30 ? "bg-emerald-500/30" :
+                                                value < 60 ? "bg-emerald-500" :
+                                                value < 90 ? "bg-primary" : "bg-accent"
+                                            )}
                                             whileHover={{ scale: 1.2, zIndex: 10 }}
                                             onMouseEnter={() => setHoveredCell({ day: dayIndex, hour: hourIndex, value })}
                                             onMouseLeave={() => setHoveredCell(null)}
@@ -109,41 +118,43 @@ export function OccupancyHeatmap() {
                 </div>
             </div>
 
-            {/* Tooltip */}
-            {hoveredCell && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 flex items-center gap-4 text-sm"
-                >
-                    <span className="text-muted-foreground">
-                        {days[hoveredCell.day]} at {hours[hoveredCell.hour]}:
-                    </span>
-                    <span className={`font-bold ${hoveredCell.value >= 90 ? "text-red-500" :
-                            hoveredCell.value >= 75 ? "text-orange-500" :
-                                hoveredCell.value >= 50 ? "text-yellow-500" :
-                                    "text-green-500"
-                        }`}>
-                        {hoveredCell.value}% occupancy
-                    </span>
-                </motion.div>
-            )}
-
-            {/* Insights */}
-            <div className="mt-6 grid grid-cols-3 gap-4 border-t border-border/50 pt-4">
-                <div>
-                    <p className="text-sm text-muted-foreground">Peak Hours</p>
-                    <p className="font-semibold">9AM - 11AM</p>
-                </div>
-                <div>
-                    <p className="text-sm text-muted-foreground">Busiest Day</p>
-                    <p className="font-semibold">Friday</p>
-                </div>
-                <div>
-                    <p className="text-sm text-muted-foreground">Low Traffic</p>
-                    <p className="font-semibold">2AM - 5AM</p>
-                </div>
+            {/* Tooltip or Dynamic Info */}
+            <div className="h-10 mt-2">
+                {hoveredCell ? (
+                    <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center gap-2 text-xs"
+                    >
+                        <span className="font-black uppercase tracking-widest text-muted-foreground px-2 py-1 bg-secondary rounded-md">
+                            {days[hoveredCell.day]}
+                        </span>
+                        <span className="font-black uppercase tracking-widest text-muted-foreground px-2 py-1 bg-secondary rounded-md">
+                            {hours[hoveredCell.hour]}
+                        </span>
+                        <span className={cn(
+                            "font-black uppercase tracking-widest px-2 py-1 rounded-md",
+                            hoveredCell.value >= 75 ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
+                        )}>
+                            {hoveredCell.value}% Occupancy
+                        </span>
+                    </motion.div>
+                ) : (
+                    <p className="text-[10px] font-medium text-muted-foreground italic">
+                        Hover over the grid to see detailed hourly occupancy...
+                    </p>
+                )}
             </div>
         </motion.div>
     )
 }
+
+function getColor(value: number): string {
+    if (value >= 90) return "bg-accent"
+    if (value >= 75) return "bg-primary"
+    if (value >= 50) return "bg-emerald-500"
+    if (value >= 25) return "bg-emerald-500/50"
+    return "bg-emerald-500/20"
+}
+
+import { cn } from "@/lib/utils"

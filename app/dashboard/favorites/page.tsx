@@ -92,25 +92,32 @@ export default function FavoritesPage() {
 
                         <div className="p-5">
                             <div className="mb-4">
-                                <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
+                                <h3 className="font-black text-xl uppercase tracking-tighter line-clamp-1 group-hover:text-primary transition-colors">
                                     {parking.name}
                                 </h3>
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                                    <MapPin className="h-3 w-3" />
+                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-2 bg-secondary/30 w-fit px-2 py-1 rounded-lg">
+                                    <MapPin className="h-3 w-3 text-primary" />
                                     {parking.location}
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1 text-sm">
-                                    <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                                    <span className="font-medium">{parking.rating}</span>
+                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/50">
+                                <div className="flex items-center gap-1.5">
+                                    <div className="flex items-center text-primary">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star
+                                                key={i}
+                                                className={`h-3 w-3 ${i < Math.floor(parking.rating) ? 'fill-current' : 'opacity-30'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <span className="text-[10px] font-black tracking-widest">{parking.rating.toFixed(1)}</span>
                                 </div>
 
                                 <Link href={`/booking/${parking.parkingId}`}>
-                                    <Button size="sm" className="gap-2 font-bold uppercase tracking-tight">
+                                    <Button size="sm" className="gap-2 font-black uppercase tracking-tighter text-[10px] bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all">
                                         {t.common.bookNow}
-                                        <ArrowRight className="h-4 w-4" />
+                                        <ArrowRight className="h-3 w-3" />
                                     </Button>
                                 </Link>
                             </div>
