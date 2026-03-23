@@ -16,11 +16,93 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/lib/i18n"
-import { useParkingStore } from "@/lib/store"
+import { useParkingStore, useAuthStore, type Parking } from "@/lib/store"
+import { supabase } from "@/lib/supabase"
+import { useToast } from "@/components/ui/use-toast"
+import type { FilterState } from "./parking-filters"
 
-export function ParkingList() {
+interface ParkingListProps {
+    filters?: FilterState
+}
+
+export function ParkingList({ filters }: ParkingListProps) {
     const { t } = useTranslation()
-    const { parkings } = useParkingStore()
+    const { parkings: allParkings } = useParkingStore()
+
+    const parkings = React.useMemo(() => {
+        let result = [...allParkings]
+
+        if (filters) {
+            if (filters.location.trim()) {
+                const q = filters.location.toLowerCase()
+                result = result.filter(
+                    (p) =>
+                        p.name.toLowerCase().includes(q) ||
+                        p.address.toLowerCase().includes(q) ||
+                        p.city.toLowerCase().includes(q)
+                )
+            }
+
+            result = result.filter(
+                (p) => p.pricePerHour >= filters.priceRange[0] && p.pricePerHour <= filters.priceRange[1]
+            )
+
+            if (filters.amenities.size > 0) {
+                const amenityMap: Record<string, (p: Parking) => boolean> = {
+                    ev: (p) => p.hasEvCharging || p.amenities.includes("ev"),
+                    cctv: (p) => p.amenities.includes("cctv"),
+                    covered: (p) => p.amenities.includes("covered"),
+                    "24h": (p) => p.amenities.includes("24h"),
+                }
+                result = result.filter((p) =>
+                    Array.from(filters.amenities).every((a) => amenityMap[a]?.(p) ?? true)
+                )
+            }
+
+            if (filters.sortBy === "Price: Low to High") {
+                result.sort((a, b) => a.pricePerHour - b.pricePerHour)
+            } else if (filters.sortBy === "Price: High to Low") {
+                result.sort((a, b) => b.pricePerHour - a.pricePerHour)
+            } else if (filters.sortBy === "Rating") {
+                result.sort((a, b) => b.rating - a.rating)
+            }
+        }
+
+        return result
+    }, [allParkings, filters])
+    const { user } = useAuthStore()
+    const { toast } = useToast()
+    const [favoriteIds, setFavoriteIds] = React.useState<Set<string>>(new Set())
+
+    React.useEffect(() => {
+        if (!user) return
+        const load = async () => {
+            const { data } = await supabase
+                .from("favorites")
+                .select("parking_id")
+                .eq("user_id", user.id)
+            if (data) setFavoriteIds(new Set(data.map((f) => f.parking_id)))
+        }
+        load()
+    }, [user])
+
+    const toggleFavorite = async (parkingId: string) => {
+        if (!user) {
+            toast({ title: "Please log in", description: "You need to be logged in to add favorites", variant: "destructive" })
+            return
+        }
+        if (favoriteIds.has(parkingId)) {
+            await supabase.from("favorites").delete().eq("user_id", user.id).eq("parking_id", parkingId)
+            setFavoriteIds((prev) => { const n = new Set(prev); n.delete(parkingId); return n })
+            toast({ title: t.common.success, description: "Removed from favorites" })
+        } else {
+            const { error } = await supabase.from("favorites").insert({ user_id: user.id, parking_id: parkingId })
+            if (!error) {
+                setFavoriteIds((prev) => new Set(prev).add(parkingId))
+                toast({ title: t.common.success, description: "Added to favorites!" })
+            }
+        }
+    }
 
     const getAmenityIcon = (type: string) => {
         switch (type) {
@@ -30,6 +112,16 @@ export function ParkingList() {
             case "24h": return <Clock className="h-3 w-3" />
             default: return null
         }
+    }
+
+    if (parkings.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <Car className="h-12 w-12 mb-4 opacity-40" />
+                <p className="text-lg font-medium">No parkings available yet</p>
+                <p className="text-sm">Check back later or try different filters.</p>
+            </div>
+        )
     }
 
     return (
@@ -56,8 +148,11 @@ export function ParkingList() {
                             </span>
                         </div>
 
-                        <button className="absolute top-3 right-3 p-2 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/40 transition-colors text-white">
-                            <Heart className="h-4 w-4" />
+                        <button
+                            className="absolute top-3 right-3 p-2 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/40 transition-colors text-white"
+                            onClick={(e) => { e.preventDefault(); toggleFavorite(parking.id) }}
+                        >
+                            <Heart className={`h-4 w-4 ${favoriteIds.has(parking.id) ? "fill-red-500 text-red-500" : ""}`} />
                         </button>
                     </div>
 

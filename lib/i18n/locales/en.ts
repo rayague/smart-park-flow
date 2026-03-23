@@ -338,6 +338,7 @@ export const en = {
       selectSpot: "Select Spot",
       dateTime: "Date & Time",
       details: "Details",
+      payment: "Payment",
       confirm: "Confirm",
     },
 
