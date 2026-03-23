@@ -21,7 +21,14 @@ export function useLogout() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("smartpark_token")
       localStorage.removeItem("auth-storage")
-      localStorage.removeItem("sb-" + new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "").hostname + "-auth-token")
+      try {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+        if (url) {
+          localStorage.removeItem("sb-" + new URL(url).hostname + "-auth-token")
+        }
+      } catch {
+        // env not set — ignore
+      }
     }
 
     // 3. Reset auth store

@@ -347,94 +347,121 @@ interface ReservationState {
   setActiveReservation: (reservation: Reservation | null) => void
 }
 
-export const useReservationStore = create<ReservationState>((set) => ({
-  reservations: [],
-  activeReservation: null,
-  addReservation: (reservation) =>
-    set((state) => ({ reservations: [...state.reservations, reservation] })),
-  fetchReservations: async () => {
-    try {
-      const { user } = useAuthStore.getState()
-      if (!user) {
-        set({ reservations: [] })
-        return
-      }
+export const useReservationStore = create<ReservationState>()(
+  persist(
+    (set, get) => ({
+      reservations: [],
+      activeReservation: null,
+      addReservation: (reservation) =>
+        set((state) => ({ reservations: [...state.reservations, reservation] })),
+      fetchReservations: async () => {
+        try {
+          const { user } = useAuthStore.getState()
+          if (!user) return
 
-      let reservationRows: any[] = []
+          let reservationRows: any[] = []
 
-      if (user.role === 'admin') {
-        const { data, error } = await supabase
-          .from('reservations')
-          .select('*')
-          .order('created_at', { ascending: false })
-        if (error) throw error
-        reservationRows = data || []
-      } else if (user.role === 'manager') {
-        const { data: parkings, error: parkErr } = await supabase
-          .from('parkings')
-          .select('id')
-          .eq('manager_id', user.id)
-        if (parkErr) throw parkErr
+          if (user.role === 'admin') {
+            const { data, error } = await supabase
+              .from('reservations')
+              .select('*')
+              .order('created_at', { ascending: false })
+            if (error) throw error
+            reservationRows = data || []
+          } else if (user.role === 'manager') {
+            const { data: parkings, error: parkErr } = await supabase
+              .from('parkings')
+              .select('id')
+              .eq('manager_id', user.id)
+            if (parkErr) throw parkErr
 
-        const parkingIds = (parkings || []).map((p) => p.id)
-        if (parkingIds.length === 0) {
-          set({ reservations: [] })
-          return
+            const parkingIds = (parkings || []).map((p) => p.id)
+            if (parkingIds.length === 0) return
+
+            const { data, error } = await supabase
+              .from('reservations')
+              .select('*')
+              .in('parking_id', parkingIds)
+              .order('created_at', { ascending: false })
+            if (error) throw error
+            reservationRows = data || []
+          } else {
+            const { data, error } = await supabase
+              .from('reservations')
+              .select('*')
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false })
+            if (error) throw error
+            reservationRows = data || []
+          }
+
+          const mapped: Reservation[] = reservationRows.map((r) => ({
+            id: r.id,
+            parkingId: r.parking_id,
+            parkingName: r.parking_name,
+            spotId: r.spot_id,
+            spotNumber: r.spot_number,
+            userId: r.user_id,
+            startTime: new Date(r.start_time),
+            endTime: new Date(r.end_time),
+            status: mapReservationStatus(r.status),
+            totalPrice: r.total_price,
+            vehiclePlate: r.vehicle_plate || '',
+            isEv: !!r.is_ev,
+          }))
+
+          if (mapped.length > 0) {
+            set({ reservations: mapped })
+          }
+          // If Supabase returns empty, keep existing local reservations
+        } catch (error: any) {
+          if (error?.name === 'AbortError') return
+          console.error('Failed to fetch reservations:', error);
         }
-
-        const { data, error } = await supabase
+      },
+      updateReservation: (id, updates) =>
+        set((state) => ({
+          reservations: state.reservations.map((r) =>
+            r.id === id ? { ...r, ...updates } : r
+          ),
+        })),
+      cancelReservation: (id) => {
+        set((state) => ({
+          reservations: state.reservations.map((r) =>
+            r.id === id ? { ...r, status: 'cancelled' as const } : r
+          ),
+        }))
+        supabase
           .from('reservations')
-          .select('*')
-          .in('parking_id', parkingIds)
-          .order('created_at', { ascending: false })
-        if (error) throw error
-        reservationRows = data || []
-      } else {
-        const { data, error } = await supabase
-          .from('reservations')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-        if (error) throw error
-        reservationRows = data || []
-      }
-
-      const mapped: Reservation[] = reservationRows.map((r) => ({
-        id: r.id,
-        parkingId: r.parking_id,
-        parkingName: r.parking_name,
-        spotId: r.spot_id,
-        spotNumber: r.spot_number,
-        userId: r.user_id,
-        startTime: new Date(r.start_time),
-        endTime: new Date(r.end_time),
-        status: mapReservationStatus(r.status),
-        totalPrice: r.total_price,
-        vehiclePlate: r.vehicle_plate || '',
-        isEv: !!r.is_ev,
-      }))
-
-      set({ reservations: mapped })
-    } catch (error: any) {
-      if (error?.name === 'AbortError') return
-      console.error('Failed to fetch reservations:', error);
+          .update({ status: 'CANCELLED' })
+          .eq('id', id)
+          .then(() => undefined, (err) => console.error('Failed to cancel reservation in DB:', err))
+      },
+      setActiveReservation: (reservation) =>
+        set({ activeReservation: reservation }),
+    }),
+    {
+      name: 'smartpark-reservations',
+      storage: {
+        getItem: (name) => {
+          const str = localStorage.getItem(name)
+          if (!str) return null
+          const parsed = JSON.parse(str)
+          if (parsed?.state?.reservations) {
+            parsed.state.reservations = parsed.state.reservations.map((r: any) => ({
+              ...r,
+              startTime: new Date(r.startTime),
+              endTime: new Date(r.endTime),
+            }))
+          }
+          return parsed
+        },
+        setItem: (name, value) => localStorage.setItem(name, JSON.stringify(value)),
+        removeItem: (name) => localStorage.removeItem(name),
+      },
     }
-  },
-  updateReservation: (id, updates) =>
-    set((state) => ({
-      reservations: state.reservations.map((r) =>
-        r.id === id ? { ...r, ...updates } : r
-      ),
-    })),
-  cancelReservation: (id) =>
-    set((state) => ({
-      reservations: state.reservations.map((r) =>
-        r.id === id ? { ...r, status: 'cancelled' as const } : r
-      ),
-    })),
-  setActiveReservation: (reservation) =>
-    set({ activeReservation: reservation }),
-}))
+  )
+)
 
 // UI Store
 interface UIState {
@@ -493,7 +520,7 @@ export const useUIStore = create<UIState>((set) => ({
         type: (n.type || 'info') as Notification['type'],
         title: n.title || 'Notification',
         message: n.message || '',
-        read: !!n.read,
+        read: !!(n.is_read ?? n.read),
         createdAt: n.created_at ? new Date(n.created_at) : new Date(),
       }))
 
@@ -573,7 +600,7 @@ export const useBookingStore = create<BookingState>((set) => ({
   isEv: false,
   setStep: (step) => set({ step }),
   setParking: (id, name) => set({ parkingId: id, parkingName: name }),
-  nextStep: () => set((state) => ({ step: Math.min(state.step + 1, 4) })),
+  nextStep: () => set((state) => ({ step: Math.min(state.step + 1, 5) })),
   prevStep: () => set((state) => ({ step: Math.max(state.step - 1, 1) })),
   setSelectedSpot: (spot) => set({ selectedSpot: spot }),
   setSelectedDate: (date) => set({ selectedDate: date }),

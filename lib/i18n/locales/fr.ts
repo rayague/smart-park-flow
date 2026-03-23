@@ -340,6 +340,7 @@ export const fr: Translations = {
             selectSpot: "Choisir la Place",
             dateTime: "Date et Heure",
             details: "Détails",
+            payment: "Paiement",
             confirm: "Confirmer",
         },
 

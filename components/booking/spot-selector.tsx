@@ -15,42 +15,60 @@ interface ParkingSpot {
     isOccupied: boolean
 }
 
-// Generate mock spots
-const generateSpots = (floor: number): ParkingSpot[] => {
-    const spots: ParkingSpot[] = []
-    const rows = ["A", "B", "C", "D"]
-
-    rows.forEach((row) => {
-        for (let i = 1; i <= 8; i++) {
-            const random = Math.random()
-            spots.push({
-                id: `${floor}-${row}${i}`,
-                number: `${row}${i}`,
-                floor,
-                type: random > 0.85 ? "ev" : random > 0.8 ? "handicap" : "standard",
-                isOccupied: random < 0.4,
-            })
-        }
-    })
-
-    return spots
+function mapDbSpot(s: any): ParkingSpot {
+    return {
+        id: s.id,
+        number: s.number,
+        floor: s.floor ?? 1,
+        type: s.type === "EV" ? "ev" : "standard",
+        isOccupied: s.status === "OCCUPIED" || s.status === "MAINTENANCE",
+    }
 }
-
-const floors = [
-    { level: 1, name: "Floor 1" },
-    { level: 2, name: "Floor 2" },
-    { level: 3, name: "Floor 3" },
-]
 
 export function SpotSelector() {
     const { t } = useTranslation()
     const { selectedSpot, setSelectedSpot } = useBookingStore()
+    const parkingId = useBookingStore((s) => s.parkingId)
     const [currentFloor, setCurrentFloor] = React.useState(1)
     const [spots, setSpots] = React.useState<ParkingSpot[]>([])
+    const [allSpots, setAllSpots] = React.useState<ParkingSpot[]>([])
+    const [floors, setFloors] = React.useState<{ level: number; name: string }[]>([])
+    const [loading, setLoading] = React.useState(true)
 
     React.useEffect(() => {
-        setSpots(generateSpots(currentFloor))
-    }, [currentFloor])
+        let cancelled = false
+        const load = async () => {
+            setLoading(true)
+            try {
+                const { supabase } = await import("@/lib/supabase")
+                let query = supabase.from("spots").select("*")
+                if (parkingId) query = query.eq("parking_id", parkingId)
+
+                const { data, error } = await query.order("number")
+                if (error) throw error
+
+                if (!cancelled && data) {
+                    const mapped = data.map(mapDbSpot)
+                    setAllSpots(mapped)
+
+                    const uniqueFloors = [...new Set(mapped.map((s) => s.floor))].sort()
+                    if (uniqueFloors.length === 0) uniqueFloors.push(1)
+                    setFloors(uniqueFloors.map((f) => ({ level: f, name: `Floor ${f}` })))
+                    setCurrentFloor(uniqueFloors[0])
+                }
+            } catch (e) {
+                console.error("Failed to load spots:", e)
+            } finally {
+                if (!cancelled) setLoading(false)
+            }
+        }
+        load()
+        return () => { cancelled = true }
+    }, [parkingId])
+
+    React.useEffect(() => {
+        setSpots(allSpots.filter((s) => s.floor === currentFloor))
+    }, [currentFloor, allSpots])
 
     const getSpotIcon = (type: string) => {
         switch (type) {
@@ -130,60 +148,43 @@ export function SpotSelector() {
 
             {/* Parking grid */}
             <div className="rounded-2xl glass p-6">
-                {/* Entry/Exit indicators */}
-                <div className="flex justify-between mb-4 text-xs text-muted-foreground">
-                    <span className="px-3 py-1 rounded-full bg-secondary">← Entry</span>
-                    <span className="px-3 py-1 rounded-full bg-secondary">Exit →</span>
-                </div>
+                {loading ? (
+                    <div className="flex items-center justify-center py-12 text-muted-foreground">
+                        Loading spots...
+                    </div>
+                ) : spots.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                        <Car className="h-10 w-10 mb-3 opacity-40" />
+                        <p>No spots found for this floor</p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="flex justify-between mb-4 text-xs text-muted-foreground">
+                            <span className="px-3 py-1 rounded-full bg-secondary">← Entry</span>
+                            <span className="px-3 py-1 rounded-full bg-secondary">Exit →</span>
+                        </div>
 
-                {/* Spots grid */}
-                <div className="grid grid-cols-8 gap-2">
-                    {spots.map((spot, index) => (
-                        <motion.button
-                            key={spot.id}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: index * 0.02 }}
-                            onClick={() => !spot.isOccupied && setSelectedSpot(spot as any)}
-                            disabled={spot.isOccupied}
-                            className={cn(
-                                "relative aspect-[3/4] rounded-lg flex flex-col items-center justify-center gap-1 transition-all duration-200",
-                                getSpotColor(spot)
-                            )}
-                        >
-                            {getSpotIcon(spot.type)}
-                            <span className="text-[10px] font-semibold">{spot.number}</span>
-                        </motion.button>
-                    ))}
-                </div>
-
-                {/* Aisle indicator */}
-                <div className="my-4 border-t-2 border-dashed border-border flex items-center justify-center">
-                    <span className="px-3 py-1 -mt-3 bg-background text-xs text-muted-foreground">
-                        Driving Aisle
-                    </span>
-                </div>
-
-                {/* Second row of spots */}
-                <div className="grid grid-cols-8 gap-2">
-                    {spots.slice(0, 16).map((spot, index) => (
-                        <motion.button
-                            key={`lower-${spot.id}`}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.3 + index * 0.02 }}
-                            onClick={() => !spot.isOccupied && setSelectedSpot({ ...spot, id: `lower-${spot.id}` } as any)}
-                            disabled={spot.isOccupied}
-                            className={cn(
-                                "relative aspect-[3/4] rounded-lg flex flex-col items-center justify-center gap-1 transition-all duration-200",
-                                getSpotColor({ ...spot, id: `lower-${spot.id}` })
-                            )}
-                        >
-                            {getSpotIcon(spot.type)}
-                            <span className="text-[10px] font-semibold">{spot.number}</span>
-                        </motion.button>
-                    ))}
-                </div>
+                        <div className="grid grid-cols-8 gap-2">
+                            {spots.map((spot, index) => (
+                                <motion.button
+                                    key={spot.id}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: index * 0.02 }}
+                                    onClick={() => !spot.isOccupied && setSelectedSpot(spot as any)}
+                                    disabled={spot.isOccupied}
+                                    className={cn(
+                                        "relative aspect-[3/4] rounded-lg flex flex-col items-center justify-center gap-1 transition-all duration-200",
+                                        getSpotColor(spot)
+                                    )}
+                                >
+                                    {getSpotIcon(spot.type)}
+                                    <span className="text-[10px] font-semibold">{spot.number}</span>
+                                </motion.button>
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Selected spot info */}

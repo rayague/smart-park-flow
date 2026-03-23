@@ -2,13 +2,14 @@
 
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowRight, Search, MapPin, Building2, Car, X, Command } from "lucide-react"
+import { ArrowRight, Search, MapPin, Building2, Car, X, Command, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TypingText } from "@/components/ui/typing-text"
 import { useTranslation } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 // Mock data for autocomplete
 const MOCK_RESULTS = [
@@ -22,11 +23,24 @@ const MOCK_RESULTS = [
   { id: "8", type: "location", name: "Gare de Lyon", sub: "Paris, FR", icon: MapPin },
 ]
 
+import { LoadingOverlay } from "@/components/loading-overlay"
+import { supabase } from "@/lib/supabase"
+
+interface SearchResult {
+  id: string
+  type: 'city' | 'parking' | 'location'
+  name: string
+  sub: string
+  icon: any
+}
+
 export function HeroSection() {
   const { t, language } = useTranslation()
   const [searchValue, setSearchValue] = React.useState("")
   const [showResults, setShowResults] = React.useState(false)
-  const [filteredResults, setFilteredResults] = React.useState(MOCK_RESULTS)
+  const [filteredResults, setFilteredResults] = React.useState<SearchResult[]>([])
+  const [isSearching, setIsSearching] = React.useState(false)
+  const router = useRouter()
 
   const typingTexts = React.useMemo(() => [
     t.landing.typingTexts.smartParking,
@@ -35,19 +49,48 @@ export function HeroSection() {
     t.landing.typingTexts.easyBooking,
   ], [t, language])
 
+  // Real-time search from Supabase
+  React.useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchValue.trim().length > 0) {
+        setIsSearching(true)
+        try {
+          // Search in parkings table
+          const { data, error } = await supabase
+            .from('parkings')
+            .select('id, name, address, city')
+            .or(`name.ilike.%${searchValue}%,city.ilike.%${searchValue}%,address.ilike.%${searchValue}%`)
+            .limit(8)
+
+          if (error) throw error
+
+          const results: SearchResult[] = data.map(item => ({
+            id: item.id,
+            type: 'parking',
+            name: item.name,
+            sub: `${item.address}, ${item.city}`,
+            icon: Building2
+          }))
+
+          setFilteredResults(results)
+          setShowResults(true)
+        } catch (err) {
+          console.error("Search error:", err)
+          setFilteredResults([])
+        } finally {
+          setIsSearching(false)
+        }
+      } else {
+        setFilteredResults([])
+        setShowResults(false)
+      }
+    }, 300) // Debounce
+
+    return () => clearTimeout(timer)
+  }, [searchValue])
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setSearchValue(value)
-    if (value.trim().length > 0) {
-      const filtered = MOCK_RESULTS.filter(
-        item => item.name.toLowerCase().includes(value.toLowerCase()) ||
-          item.sub.toLowerCase().includes(value.toLowerCase())
-      )
-      setFilteredResults(filtered)
-      setShowResults(true)
-    } else {
-      setShowResults(false)
-    }
+    setSearchValue(e.target.value)
   }
 
   return (
@@ -62,18 +105,18 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center space-y-6"
+            className="text-center space-y-2"
           >
-            <h1 className="font-serif text-5xl font-black leading-tight tracking-tight sm:text-7xl lg:text-8xl">
-              {t.landing.heroTitle}
+            <h1 className="font-sans text-5xl font-black leading-tight tracking-tight sm:text-7xl lg:text-8xl flex flex-col items-center">
+              <span>{t.landing.heroTitle}</span>
+              <div className="h-20 sm:h-28 flex items-center justify-center">
+                <TypingText
+                  key={language}
+                  texts={typingTexts}
+                  className="text-primary"
+                />
+              </div>
             </h1>
-            <div className="h-16 flex items-center justify-center">
-              <TypingText
-                key={language}
-                texts={typingTexts}
-                className="text-3xl sm:text-5xl lg:text-6xl font-bold"
-              />
-            </div>
           </motion.div>
 
           {/* Large Search Container */}
@@ -94,7 +137,7 @@ export function HeroSection() {
                 value={searchValue}
                 onChange={handleSearch}
                 onFocus={() => searchValue.length > 0 && setShowResults(true)}
-                placeholder="Find a city, an address or a parking name..."
+                placeholder={t.landing.heroSearchPlaceholder || "Find a city, an address or a parking name..."}
                 className="h-16 bg-transparent border-0 focus-visible:ring-0 text-xl font-medium placeholder:text-muted-foreground/50 pl-4 pr-12"
               />
               {searchValue && (
@@ -102,15 +145,17 @@ export function HeroSection() {
                   onClick={() => { setSearchValue(""); setShowResults(false) }}
                   className="absolute right-20 p-2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <X className="h-5 w-5" />
+                  {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : <X className="h-5 w-5" />}
                 </button>
               )}
-              <Button
-                size="lg"
-                className="h-14 rounded-2xl px-8 bg-gradient-to-r from-primary to-accent glow-primary-sm hidden sm:flex"
-              >
-                Find Parking
-              </Button>
+              <Link href="/discover">
+                <Button
+                  size="lg"
+                  className="h-14 rounded-2xl px-8 bg-linear-to-r from-primary to-accent glow-primary-sm hidden sm:flex"
+                >
+                  {t.landing.findParking || "Find Parking"}
+                </Button>
+              </Link>
             </div>
 
             {/* Autocomplete Results */}
@@ -132,6 +177,7 @@ export function HeroSection() {
                             onClick={() => {
                               setSearchValue(result.name)
                               setShowResults(false)
+                              router.push(`/booking/${result.id}`)
                             }}
                           >
                             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">

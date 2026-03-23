@@ -11,15 +11,14 @@ import {
     Zap,
     Info
 } from "lucide-react"
-import { useBookingStore, useReservationStore, useParkingStore } from "@/lib/store"
+import { useBookingStore, useParkingStore } from "@/lib/store"
 import { format } from "date-fns"
-import { useToast } from "@/components/ui/use-toast"
+import { useTranslation } from "@/lib/i18n"
 import { calculateParkingPrice } from "@/lib/utils/pricing"
+import { Button } from "@/components/ui/button"
 
 export function BookingSummary() {
     const { t } = useTranslation()
-    const { toast } = useToast()
-    const [isSubmitting, setIsSubmitting] = React.useState(false)
     const {
         parkingId,
         parkingName,
@@ -28,17 +27,13 @@ export function BookingSummary() {
         startTime,
         endTime,
         isEv,
-        vehiclePlate,
-        nextStep
     } = useBookingStore()
 
-    const { fetchReservations } = useReservationStore()
     const { parkings } = useParkingStore()
 
     const parking = parkings.find(p => p.id === parkingId)
     const pricePerHour = parking?.pricePerHour || 5.00
 
-    // Use centralized calculation
     const pricing = React.useMemo(() => calculateParkingPrice({
         pricePerHour,
         startTime,
@@ -47,48 +42,6 @@ export function BookingSummary() {
     }), [pricePerHour, startTime, endTime, isEv])
 
     const { subtotal, serviceFee, evFee, total, durationInHours: duration } = pricing
-
-    const handleConfirm = async () => {
-        setIsSubmitting(true)
-        try {
-            const { apiRequest } = await import("@/lib/api")
-
-            // Format dates
-            const startStr = `${format(selectedDate!, "yyyy-MM-dd")}T${startTime}:00`
-            const endStr = `${format(selectedDate!, "yyyy-MM-dd")}T${endTime}:00`
-
-            await apiRequest("/reservations", {
-                method: "POST",
-                body: JSON.stringify({
-                    parkingId,
-                    parkingName,
-                    spotId: selectedSpot?.id,
-                    spotNumber: selectedSpot?.number,
-                    startTime: startStr,
-                    endTime: endStr,
-                    totalPrice: total,
-                    vehiclePlate: vehiclePlate || "NOT-SET",
-                    isEv
-                })
-            })
-
-            toast({
-                title: t.common.success,
-                description: "Reservation confirmed!"
-            })
-
-            await fetchReservations()
-            nextStep()
-        } catch (error: any) {
-            toast({
-                title: t.common.error,
-                description: error.message || "Failed to confirm reservation",
-                variant: "destructive"
-            })
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
 
     return (
         <motion.div
@@ -185,24 +138,8 @@ export function BookingSummary() {
                             </div>
                         </div>
 
-                        <Button
-                            className="w-full h-12 text-lg font-medium glow-primary mt-4"
-                            onClick={handleConfirm}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? (
-                                <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                    className="h-5 w-5 rounded-full border-2 border-primary-foreground border-t-transparent"
-                                />
-                            ) : (
-                                t.booking.summary.confirmBooking
-                            )}
-                        </Button>
-
                         <p className="text-xs text-center text-muted-foreground mt-2">
-                            By confirming, you agree to our Terms of Service
+                            Click "Next" to proceed to payment
                         </p>
                     </div>
                 </div>
