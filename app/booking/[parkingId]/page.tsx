@@ -8,6 +8,7 @@ import { BookingStepper } from "@/components/booking/booking-stepper"
 import { SpotSelector } from "@/components/booking/spot-selector"
 import { BookingDateTimePicker } from "@/components/booking/date-time-picker"
 import { BookingSummary } from "@/components/booking/booking-summary"
+import { PaymentStep } from "@/components/booking/payment-step"
 import { BookingConfirmation } from "@/components/booking/booking-confirmation"
 import { useTranslation } from "@/lib/i18n"
 import { useBookingStore, useParkingStore, Parking } from "@/lib/store"
@@ -28,7 +29,6 @@ export default function BookingPage({ params }: { params: { parkingId: string } 
     } = useBookingStore()
     const { parkings } = useParkingStore()
 
-    // Initialize parking info
     React.useEffect(() => {
         const parking = parkings.find(p => p.id === params.parkingId)
         if (parking) {
@@ -37,7 +37,7 @@ export default function BookingPage({ params }: { params: { parkingId: string } 
         setStep(1)
     }, [params.parkingId, parkings, setParking, setStep])
 
-    const totalSteps = 4
+    const totalSteps = 5
 
     const canProceed = React.useMemo(() => {
         switch (step) {
@@ -58,10 +58,8 @@ export default function BookingPage({ params }: { params: { parkingId: string } 
 
             <main className="flex-1 container mx-auto px-4 py-24">
                 <div className="max-w-4xl mx-auto space-y-8">
-                    {/* Progress */}
                     <BookingStepper currentStep={step} totalSteps={totalSteps} />
 
-                    {/* Content Area */}
                     <div className="min-h-[400px]">
                         <AnimatePresence mode="wait">
                             {step === 1 && (
@@ -97,6 +95,16 @@ export default function BookingPage({ params }: { params: { parkingId: string } 
                             {step === 4 && (
                                 <motion.div
                                     key="step4"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                >
+                                    <PaymentStep />
+                                </motion.div>
+                            )}
+                            {step === 5 && (
+                                <motion.div
+                                    key="step5"
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                 >
@@ -106,7 +114,7 @@ export default function BookingPage({ params }: { params: { parkingId: string } 
                         </AnimatePresence>
                     </div>
 
-                    {/* Navigation Buttons */}
+                    {/* Navigation buttons - hide on payment (step 4, has its own button) and confirmation (step 5) */}
                     {step < 4 && (
                         <motion.div
                             className="flex justify-between pt-8 border-t border-border/50"
@@ -128,7 +136,7 @@ export default function BookingPage({ params }: { params: { parkingId: string } 
                                 disabled={!canProceed}
                                 className="gap-2 bg-gradient-to-r from-primary to-accent glow-primary"
                             >
-                                {step === 3 ? t.booking.summary.confirmBooking : t.common.next}
+                                {t.common.next}
                                 <ChevronRight className="h-4 w-4" />
                             </Button>
                         </motion.div>

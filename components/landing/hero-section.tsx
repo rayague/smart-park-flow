@@ -9,6 +9,7 @@ import { TypingText } from "@/components/ui/typing-text"
 import { useTranslation } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 // Mock data for autocomplete
 const MOCK_RESULTS = [
@@ -37,8 +38,7 @@ export function HeroSection() {
   const { t, language } = useTranslation()
   const [searchValue, setSearchValue] = React.useState("")
   const [showResults, setShowResults] = React.useState(false)
-  const [filteredResults, setFilteredResults] = React.useState<SearchResult[]>([])
-  const [isSearching, setIsSearching] = React.useState(false)
+  const [filteredResults, setFilteredResults] = React.useState(MOCK_RESULTS)
 
   const typingTexts = React.useMemo(() => [
     t.landing.typingTexts.smartParking,
@@ -148,9 +148,9 @@ export function HeroSection() {
               )}
               <Button
                 size="lg"
-                className="h-14 rounded-2xl px-8 bg-linear-to-r from-primary to-accent glow-primary-sm hidden sm:flex"
+                className="h-14 rounded-2xl px-8 bg-gradient-to-r from-primary to-accent glow-primary-sm hidden sm:flex"
               >
-                {t.landing.findParking || "Find Parking"}
+                Find Parking
               </Button>
             </div>
 
@@ -173,6 +173,7 @@ export function HeroSection() {
                             onClick={() => {
                               setSearchValue(result.name)
                               setShowResults(false)
+                              router.push(`/booking/${result.id}`)
                             }}
                           >
                             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">

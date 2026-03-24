@@ -3,7 +3,6 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import {
-    Filter,
     MapPin,
     Zap,
     Shield,
@@ -18,17 +17,49 @@ import { Switch } from "@/components/ui/switch"
 import { useTranslation } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
-export function ParkingFilters() {
+export interface FilterState {
+    location: string
+    priceRange: [number, number]
+    amenities: Set<string>
+    sortBy: string
+}
+
+interface ParkingFiltersProps {
+    filters: FilterState
+    onFiltersChange: (filters: FilterState) => void
+}
+
+const AMENITIES = [
+    { key: "ev", icon: Zap, label: "EV Charging" },
+    { key: "cctv", icon: Shield, label: "24/7 Security" },
+    { key: "covered", icon: Car, label: "Covered Parking" },
+    { key: "24h", icon: Clock, label: "24h Access" },
+]
+
+const SORT_OPTIONS = ["Price: Low to High", "Price: High to Low", "Rating"]
+
+export function ParkingFilters({ filters, onFiltersChange }: ParkingFiltersProps) {
     const { t } = useTranslation()
-    const [priceRange, setPriceRange] = React.useState([0, 20])
     const [showFilters, setShowFilters] = React.useState(false)
 
-    const amenities = [
-        { icon: Zap, label: "EV Charging" },
-        { icon: Shield, label: "24/7 Security" },
-        { icon: Car, label: "Covered Parking" },
-        { icon: Clock, label: "24h Access" },
-    ]
+    const updateLocation = (val: string) => {
+        onFiltersChange({ ...filters, location: val })
+    }
+
+    const updatePrice = (val: number[]) => {
+        onFiltersChange({ ...filters, priceRange: [val[0], val[1]] })
+    }
+
+    const toggleAmenity = (key: string) => {
+        const next = new Set(filters.amenities)
+        if (next.has(key)) next.delete(key)
+        else next.add(key)
+        onFiltersChange({ ...filters, amenities: next })
+    }
+
+    const setSort = (sort: string) => {
+        onFiltersChange({ ...filters, sortBy: filters.sortBy === sort ? "" : sort })
+    }
 
     return (
         <div className="space-y-6">
@@ -38,6 +69,8 @@ export function ParkingFilters() {
                     <Input
                         placeholder={t.common.location}
                         className="pl-10 h-12 bg-secondary/50 border-0"
+                        value={filters.location}
+                        onChange={(e) => updateLocation(e.target.value)}
                     />
                 </div>
                 <Button
@@ -50,6 +83,11 @@ export function ParkingFilters() {
                 >
                     <SlidersHorizontal className="h-4 w-4" />
                     Filters
+                    {(filters.amenities.size > 0 || filters.sortBy) && (
+                        <span className="ml-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                            {filters.amenities.size + (filters.sortBy ? 1 : 0)}
+                        </span>
+                    )}
                 </Button>
             </div>
 
@@ -64,12 +102,12 @@ export function ParkingFilters() {
                         <div className="flex items-center justify-between">
                             <label className="text-sm font-medium">Price Range ($/hr)</label>
                             <span className="text-sm text-muted-foreground">
-                                ${priceRange[0]} - ${priceRange[1]}
+                                ${filters.priceRange[0]} - ${filters.priceRange[1]}
                             </span>
                         </div>
                         <Slider
-                            value={priceRange}
-                            onValueChange={setPriceRange}
+                            value={[filters.priceRange[0], filters.priceRange[1]]}
+                            onValueChange={updatePrice}
                             max={50}
                             step={1}
                             className="py-4"
@@ -80,11 +118,15 @@ export function ParkingFilters() {
                     <div className="space-y-4">
                         <label className="text-sm font-medium">Amenities</label>
                         <div className="grid grid-cols-2 gap-3">
-                            {amenities.map((item) => (
-                                <div key={item.label} className="flex items-center gap-2">
-                                    <Switch id={item.label} />
+                            {AMENITIES.map((item) => (
+                                <div key={item.key} className="flex items-center gap-2">
+                                    <Switch
+                                        id={item.key}
+                                        checked={filters.amenities.has(item.key)}
+                                        onCheckedChange={() => toggleAmenity(item.key)}
+                                    />
                                     <label
-                                        htmlFor={item.label}
+                                        htmlFor={item.key}
                                         className="text-sm text-muted-foreground cursor-pointer select-none"
                                     >
                                         {item.label}
@@ -98,10 +140,16 @@ export function ParkingFilters() {
                     <div className="space-y-4">
                         <label className="text-sm font-medium">Sort By</label>
                         <div className="flex flex-wrap gap-2">
-                            {["Distance", "Price: Low to High", "Rating"].map((sort) => (
+                            {SORT_OPTIONS.map((sort) => (
                                 <button
                                     key={sort}
-                                    className="px-3 py-1.5 rounded-lg text-sm bg-secondary/50 hover:bg-primary/10 hover:text-primary transition-colors"
+                                    onClick={() => setSort(sort)}
+                                    className={cn(
+                                        "px-3 py-1.5 rounded-lg text-sm transition-colors",
+                                        filters.sortBy === sort
+                                            ? "bg-primary/20 text-primary ring-1 ring-primary/30"
+                                            : "bg-secondary/50 hover:bg-primary/10 hover:text-primary"
+                                    )}
                                 >
                                     {sort}
                                 </button>

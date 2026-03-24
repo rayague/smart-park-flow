@@ -5,13 +5,20 @@ import { motion } from "framer-motion"
 import { useTranslation } from "@/lib/i18n"
 import { Header } from "@/components/landing/header"
 import { Footer } from "@/components/landing/footer"
-import { ParkingFilters } from "@/components/discover/parking-filters"
+import { ParkingFilters, type FilterState } from "@/components/discover/parking-filters"
 import { ParkingList } from "@/components/discover/parking-list"
 import { useParkingStore } from "@/lib/store"
 
 export default function DiscoverPage() {
     const { t } = useTranslation()
     const { fetchParkings } = useParkingStore()
+
+    const [filters, setFilters] = React.useState<FilterState>({
+        location: "",
+        priceRange: [0, 50],
+        amenities: new Set(),
+        sortBy: "",
+    })
 
     React.useEffect(() => {
         fetchParkings()
@@ -36,8 +43,8 @@ export default function DiscoverPage() {
                         </p>
                     </motion.div>
 
-                    <ParkingFilters />
-                    <ParkingList />
+                    <ParkingFilters filters={filters} onFiltersChange={setFilters} />
+                    <ParkingList filters={filters} />
                 </div>
             </main>
 

@@ -18,6 +18,7 @@ export function BookingStepper({ currentStep, totalSteps }: BookingStepperProps)
         t.booking.steps.selectSpot,
         t.booking.steps.dateTime,
         t.booking.steps.details,
+        t.booking.steps.payment,
         t.booking.steps.confirm,
     ]
 

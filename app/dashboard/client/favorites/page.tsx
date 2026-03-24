@@ -2,30 +2,69 @@
 
 import * as React from "react"
 import { motion } from "framer-motion"
-import { MapPin, Star, ArrowRight, Trash2 } from "lucide-react"
+import { MapPin, Star, ArrowRight, Trash2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useTranslation } from "@/lib/i18n"
+import { useAuthStore } from "@/lib/store"
+import { supabase } from "@/lib/supabase"
+import { useToast } from "@/components/ui/use-toast"
+
+interface FavoriteParking {
+    id: string
+    favoriteId: string
+    name: string
+    location: string
+    rating: number
+}
 
 export default function ClientFavoritesPage() {
     const { t } = useTranslation()
+    const { user } = useAuthStore()
+    const { toast } = useToast()
+    const [favorites, setFavorites] = React.useState<FavoriteParking[]>([])
+    const [loading, setLoading] = React.useState(true)
 
-    const favorites = [
-        {
-            id: "1",
-            name: "Central Station Parking",
-            location: "Downtown, 1.2km away",
-            rating: 4.8,
-            image: "/images/parking-1.jpg",
-        },
-        {
-            id: "3",
-            name: "Tech Hub EV Center",
-            location: "Business Park, 0.8km away",
-            rating: 4.9,
-            image: "/images/parking-3.jpg",
+    const fetchFavorites = React.useCallback(async () => {
+        if (!user) return
+        setLoading(true)
+        try {
+            const { data, error } = await supabase
+                .from("favorites")
+                .select("id, parking_id, parkings(id, name, address, city, rating)")
+                .eq("user_id", user.id)
+
+            if (error) throw error
+
+            const mapped = (data || []).map((f: any) => ({
+                id: f.parkings?.id || f.parking_id,
+                favoriteId: f.id,
+                name: f.parkings?.name || "Parking",
+                location: `${f.parkings?.address || ""}, ${f.parkings?.city || ""}`,
+                rating: f.parkings?.rating ?? 0,
+            }))
+            setFavorites(mapped)
+        } catch (e) {
+            console.error("Failed to fetch favorites:", e)
+        } finally {
+            setLoading(false)
         }
-    ]
+    }, [user])
+
+    React.useEffect(() => {
+        fetchFavorites()
+    }, [fetchFavorites])
+
+    const removeFavorite = async (favoriteId: string) => {
+        try {
+            const { error } = await supabase.from("favorites").delete().eq("id", favoriteId)
+            if (error) throw error
+            setFavorites((prev) => prev.filter((f) => f.favoriteId !== favoriteId))
+            toast({ title: t.common.success, description: "Removed from favorites" })
+        } catch (e: any) {
+            toast({ title: t.common.error, description: e.message, variant: "destructive" })
+        }
+    }
 
     return (
         <div className="space-y-6">
@@ -35,16 +74,26 @@ export default function ClientFavoritesPage() {
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {favorites.map((parking, index) => (
+                {loading && (
+                    <div className="col-span-full flex justify-center py-12">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
+                )}
+                {!loading && favorites.map((parking, index) => (
                     <motion.div
-                        key={parking.id}
+                        key={parking.favoriteId}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.1 }}
                         className="group relative overflow-hidden rounded-2xl glass card-hover"
                     >
                         <div className="absolute top-3 right-3 z-10">
-                            <Button variant="ghost" size="icon" className="bg-black/20 backdrop-blur-md hover:bg-destructive hover:text-white text-white">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="bg-black/20 backdrop-blur-md hover:bg-destructive hover:text-white text-white"
+                                onClick={() => removeFavorite(parking.favoriteId)}
+                            >
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>

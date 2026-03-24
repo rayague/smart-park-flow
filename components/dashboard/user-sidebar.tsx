@@ -31,13 +31,6 @@ export function UserSidebar() {
 
     const handleLogout = useLogout()
 
-    // Close sidebar on mobile when route changes
-    React.useEffect(() => {
-        if (window.innerWidth < 1024) {
-            setSidebarOpen(false)
-        }
-    }, [pathname, setSidebarOpen])
-
     const navItems = [
         {
             href: "/dashboard/client",
@@ -89,15 +82,11 @@ export function UserSidebar() {
         </AnimatePresence>
 
         <motion.aside
-            initial={false}
-            animate={{ 
-                x: isSidebarOpen ? 0 : -320,
-                width: isCollapsed ? 80 : 256
-            }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
             className={cn(
-                "fixed left-0 top-0 z-50 flex h-screen flex-col glass-strong border-r border-border/50 transition-all duration-300",
-                "lg:sticky lg:left-0 lg:translate-x-0"
+                "fixed left-0 top-0 z-40 flex h-screen flex-col glass-strong border-r border-border/50 transition-all duration-300",
+                isCollapsed ? "w-[72px]" : "w-64"
             )}
         >
             {/* Logo */}
