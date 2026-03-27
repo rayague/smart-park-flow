@@ -108,16 +108,17 @@ export function PaymentStep() {
                 total_price: pricing.total,
                 vehicle_plate: vehiclePlate || "NOT-SET",
                 is_ev: isEv,
-                status: "PENDING",
+                status: 'PAID' as Database['public']['Enums']['reservation_status'],
             }
 
-            const { data, error: dbError } = await supabase
-                .from("reservations")
+            const { data, error: insertError } = await supabase
+                .from('reservations')
                 .insert(reservationData)
                 .select()
 
-            if (dbError) {
-                console.error("Supabase insert error:", dbError)
+            if (insertError) {
+                console.error("Supabase insert error:", insertError)
+                throw new Error("Failed to create reservation in database.")
             }
 
             const localReservation = {
@@ -169,9 +170,9 @@ export function PaymentStep() {
             className="space-y-6"
         >
             <div>
-                <h2 className="font-serif text-2xl font-bold mb-2">Payment</h2>
+                <h2 className="font-serif text-2xl font-bold mb-2">{t.booking.summary.title || "Payment"}</h2>
                 <p className="text-muted-foreground">
-                    Enter your payment details to complete the booking
+                    {t.booking.payment?.enterDetails || "Enter your payment details to complete the booking"}
                 </p>
             </div>
 
@@ -185,33 +186,41 @@ export function PaymentStep() {
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Payment Form */}
                 <div className="space-y-6">
-                    <div className="flex gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setPaymentMethod("card")}
-                            className={cn(
-                                "flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all",
-                                paymentMethod === "card"
-                                    ? "border-primary bg-primary/5"
-                                    : "border-border/50 hover:border-border"
-                            )}
-                        >
-                            <CreditCard className={cn("h-5 w-5", paymentMethod === "card" ? "text-primary" : "text-muted-foreground")} />
-                            <span className="font-medium text-sm">Credit Card</span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setPaymentMethod("paypal")}
-                            className={cn(
-                                "flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all",
-                                paymentMethod === "paypal"
-                                    ? "border-primary bg-primary/5"
-                                    : "border-border/50 hover:border-border"
-                            )}
-                        >
-                            <span className={cn("font-bold text-sm", paymentMethod === "paypal" ? "text-primary" : "text-muted-foreground")}>PP</span>
-                            <span className="font-medium text-sm">PayPal</span>
-                        </button>
+                    <div className="flex flex-col gap-3">
+                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3">
+                            <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                            <p className="text-xs text-amber-500">
+                                {t.booking?.payment?.notImplemented || "Payment gateway integration is currently in demo mode. Selecting a method will simulate a successful transaction."}
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMethod("card")}
+                                className={cn(
+                                    "flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all",
+                                    paymentMethod === "card"
+                                        ? "border-primary bg-primary/5"
+                                        : "border-border/50 hover:border-border"
+                                )}
+                            >
+                                <CreditCard className={cn("h-5 w-5", paymentMethod === "card" ? "text-primary" : "text-muted-foreground")} />
+                                <span className="font-medium text-sm">Credit Card</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMethod("paypal")}
+                                className={cn(
+                                    "flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all",
+                                    paymentMethod === "paypal"
+                                        ? "border-primary bg-primary/5"
+                                        : "border-border/50 hover:border-border"
+                                )}
+                            >
+                                <span className={cn("font-bold text-sm", paymentMethod === "paypal" ? "text-primary" : "text-muted-foreground")}>PP</span>
+                                <span className="font-medium text-sm">PayPal</span>
+                            </button>
+                        </div>
                     </div>
 
                     {paymentMethod === "card" ? (

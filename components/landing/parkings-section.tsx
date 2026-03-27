@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { motion, useInView } from "framer-motion"
 import { Star, MapPin, Zap, Clock, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -35,6 +36,7 @@ function ParkingCard({
   const isInView = useInView(ref, { once: true, margin: "-50px" })
   const availabilityPercent = (parking.availableSpots / parking.totalSpots) * 100
 
+  const router = useRouter()
   // Standard OpenStreetMap / Leaflet view (Static Image Strategy for performance)
   // For interaction, we would replace this with a real Mapbox/Leaflet component
   const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-s+ff0000(${parking.longitude},${parking.latitude})/${parking.longitude},${parking.latitude},15/600x400?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZzeXoiLCJhIjoiY2l6Nzh2YnB6MDAzMnMyeW94eXpqcDlyMiJ9"}`
@@ -89,7 +91,7 @@ function ParkingCard({
 
         {/* Content */}
         <div className="p-5">
-          <h3 className="mb-1 font-serif text-lg font-semibold line-clamp-1">
+          <h3 className="mb-1 text-lg font-semibold line-clamp-1">
             {parking.name}
           </h3>
           
@@ -124,7 +126,11 @@ function ParkingCard({
               <span className="text-sm text-muted-foreground">/hour</span>
             </div>
             
-            <Button size="sm" className="gap-1 group/btn">
+            <Button 
+              size="sm" 
+              className="gap-1 group/btn"
+              onClick={() => router.push(`/booking/${parking.id}`)}
+            >
               Book Now
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-0.5" />
             </Button>
@@ -151,6 +157,7 @@ function ParkingCard({
 }
 
 export function ParkingsSection() {
+  const router = useRouter()
   const { t } = useTranslation()
   const titleRef = React.useRef(null)
   const isTitleInView = useInView(titleRef, { once: true })
@@ -236,7 +243,7 @@ export function ParkingsSection() {
             <span className="text-sm font-medium text-primary">{t.nav.parkings}</span>
           </motion.div>
           
-          <h2 className="mb-4 font-sans text-3xl font-black sm:text-4xl lg:text-5xl text-balance">
+          <h2 className="mb-4 text-3xl font-black sm:text-4xl lg:text-5xl text-balance">
             {t.landing.parkingsSection.title}
           </h2>
           
@@ -259,7 +266,11 @@ export function ParkingsSection() {
           transition={{ delay: 0.8 }}
           className="mt-12 text-center"
         >
-          <Button size="lg" className="gap-2 bg-linear-to-r from-primary to-accent glow-primary-sm border-0 font-bold px-8 h-14 rounded-2xl">
+          <Button 
+            size="lg" 
+            className="gap-2 bg-linear-to-r from-primary to-accent glow-primary-sm border-0 font-bold px-8 h-14 rounded-2xl"
+            onClick={() => router.push('/dashboard/map')}
+          >
             {t.common.viewAll} {t.nav.parkings}
             <ArrowRight className="h-5 w-5" />
           </Button>

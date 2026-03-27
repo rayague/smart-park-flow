@@ -69,7 +69,7 @@ export function Footer() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent">
                 <Car className="h-5 w-5 text-white" />
               </div>
-              <span className="font-sans text-xl font-bold">
+              <span className="text-xl font-bold">
                 Smart<span className="text-gradient-primary">Park</span>
               </span>
             </Link>
@@ -185,7 +185,7 @@ export function Footer() {
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
                 >
                   <Mail className="h-4 w-4 opacity-60 group-hover:opacity-100 group-hover:text-primary transition-all" />
-                  contact@smartpark.com
+                  {t.landing.footer.email || "contact@smartpark.com"}
                 </a>
               </li>
               <li>
@@ -194,7 +194,7 @@ export function Footer() {
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
                 >
                   <Phone className="h-4 w-4 opacity-60 group-hover:opacity-100 group-hover:text-primary transition-all" />
-                  +1 (234) 567-890
+                  {t.landing.footer.phone || "+1 (234) 567-890"}
                 </a>
               </li>
             </ul>
@@ -211,11 +211,11 @@ export function Footer() {
         >
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} SmartPark. {t.landing.footer.copyright}
+              {new Date().getFullYear()} SmartPark. {t.landing.footer.copyright}
             </p>
             <div className="flex items-center gap-4">
               <span className="text-xs text-muted-foreground/60">
-                {t.landing.footer.madeWith}
+                {t.landing.footer.madeWith || "Made with for sustainable mobility"}
               </span>
             </div>
           </div>

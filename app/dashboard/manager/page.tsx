@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { motion } from "framer-motion"
 import {
     Calendar,
@@ -15,6 +16,7 @@ import { RevenueChart } from "@/components/manager/revenue-chart"
 import { OccupancyHeatmap } from "@/components/manager/occupancy-heatmap"
 import { useAuthStore, useParkingStore, useReservationStore } from "@/lib/store"
 import { useTranslation } from "@/lib/i18n"
+import { cn } from "@/lib/utils"
 
 export default function ManagerDashboard() {
     const { user } = useAuthStore()
@@ -31,22 +33,49 @@ export default function ManagerDashboard() {
     const recentBookings = React.useMemo(() => reservations.slice(0, 5), [reservations])
 
     const stats = React.useMemo(() => {
+        const now = new Date()
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        
         const activeBookings = reservations.filter((r) => r.status === "active").length
         const totalSpots = parkings.reduce((acc, curr) => acc + curr.totalSpots, 0)
         const availableSpots = parkings.reduce((acc, curr) => acc + curr.availableSpots, 0)
         const occupancy = totalSpots > 0 ? Math.round(((totalSpots - availableSpots) / totalSpots) * 100) : 0
         const evSessions = reservations.filter((r) => r.isEv).length
 
-        // Calculate hourly intake across all parkings
+        // Calculate hourly intake
         const hourlyIntake = parkings.reduce((acc, p) => {
             const occupied = p.totalSpots - p.availableSpots
             return acc + (occupied * p.pricePerHour)
         }, 0)
 
-        // Revenue defined as sum of all hourly earned as per user request
-        const totalRevenue = hourlyIntake
+        // Real historical revenue
+        const lifetimeRevenue = reservations
+            .filter(r => r.status === 'active' || r.status === 'completed')
+            .reduce((acc, r) => acc + (r.totalPrice || 0), 0)
 
-        return { totalRevenue, occupancy, activeBookings, evSessions, hourlyIntake }
+        // Calculate changes (crude but dynamic)
+        const recentReservations = reservations.filter(r => r.startTime >= thirtyDaysAgo)
+        const olderReservations = reservations.filter(r => r.startTime < thirtyDaysAgo)
+        
+        const calculateChange = (current: number, previous: number) => {
+            if (previous === 0) return current > 0 ? 100 : 0
+            return Math.round(((current - previous) / previous) * 100 * 10) / 10
+        }
+
+        const revChange = calculateChange(
+            recentReservations.reduce((acc, r) => acc + (r.totalPrice || 0), 0),
+            olderReservations.length > 0 ? olderReservations.reduce((acc, r) => acc + (r.totalPrice || 0), 0) / (olderReservations.length / (recentReservations.length || 1)) : 0
+        )
+
+        return { 
+            totalRevenue: lifetimeRevenue, 
+            occupancy, 
+            activeBookings, 
+            evSessions, 
+            hourlyIntake,
+            revChange: calculateChange(recentReservations.length, Math.max(1, olderReservations.length / 2)), // simplified growth
+            bookChange: calculateChange(activeBookings, Math.max(1, reservations.length - activeBookings))
+        }
     }, [parkings, reservations])
 
     return (
@@ -72,6 +101,8 @@ export default function ManagerDashboard() {
                 activeBookings={stats.activeBookings}
                 evSessions={stats.evSessions}
                 hourlyIntake={stats.hourlyIntake}
+                revChange={stats.revChange}
+                bookChange={stats.bookChange}
             />
 
             {/* Charts Grid */}
@@ -91,10 +122,12 @@ export default function ManagerDashboard() {
                     <h3 className="font-heading text-xl font-black uppercase tracking-tighter">
                         {t.managerDashboard.sections.recentBookings}
                     </h3>
-                    <Button variant="ghost" size="sm" className="gap-1 font-black uppercase tracking-tighter text-[10px]">
-                        {t.common.viewAll}
-                        <ArrowRight className="h-4 w-4" />
-                    </Button>
+                    <Link href="/dashboard/manager/reservations">
+                        <Button variant="ghost" size="sm" className="gap-1 font-black uppercase tracking-tighter text-[10px]">
+                            {t.common.viewAll}
+                            <ArrowRight className="h-4 w-4" />
+                        </Button>
+                    </Link>
                 </div>
 
                 <div className="overflow-x-auto -mx-4 sm:mx-0">

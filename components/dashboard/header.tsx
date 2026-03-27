@@ -26,8 +26,10 @@ import {
 import { useUIStore, useAuthStore } from "@/lib/store"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n"
 
 export function DashboardHeader() {
+  const { t } = useTranslation()
   const { toggleSidebar, notifications, markNotificationRead, fetchNotifications } = useUIStore()
   const { user, logout } = useAuthStore()
   const router = useRouter()
@@ -132,16 +134,16 @@ export function DashboardHeader() {
                   className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-popover shadow-xl"
                 >
                   <div className="border-b border-border p-4">
-                    <h3 className="font-semibold">Notifications</h3>
+                    <h3 className="font-semibold">{t.common.notifications || "Notifications"}</h3>
                     <p className="text-sm text-muted-foreground">
-                      You have {unreadCount} unread messages
+                      {t.dashboard?.header?.unreadMessages?.replace("{count}", String(unreadCount)) || `You have ${unreadCount} unread messages`}
                     </p>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
                     {notifications.length === 0 ? (
                       <div className="p-8 text-center text-muted-foreground">
                         <Bell className="mx-auto mb-2 h-8 w-8 opacity-50" />
-                        <p>No notifications yet</p>
+                        <p>{t.dashboard?.header?.noNotifications || "No notifications yet"}</p>
                       </div>
                     ) : (
                       notifications.slice(0, 5).map((notification) => (
@@ -181,7 +183,7 @@ export function DashboardHeader() {
                         className="w-full text-sm"
                         onClick={() => setShowNotifications(false)}
                       >
-                        View all notifications
+                        {t.common.viewAll || "View all notifications"}
                       </Button>
                     </div>
                   )}
@@ -219,11 +221,11 @@ export function DashboardHeader() {
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <User className="mr-2 h-4 w-4" />
-              Profile
+              {t.common.profile || "Profile"}
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Settings className="mr-2 h-4 w-4" />
-              Settings
+              {t.common.settings || "Settings"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -231,7 +233,7 @@ export function DashboardHeader() {
               className="text-destructive focus:text-destructive"
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Log out
+              {t.common.signOut || "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

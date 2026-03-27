@@ -101,7 +101,7 @@ function FeatureCard({
         </div>
 
         {/* Content */}
-        <h3 className="mb-2 font-sans text-xl font-black uppercase tracking-tight">
+        <h3 className="mb-2 text-xl font-black uppercase tracking-tight">
           {title}
         </h3>
         <p className="text-muted-foreground leading-relaxed">
@@ -144,7 +144,7 @@ export function FeaturesSection() {
             <span className="text-sm font-medium text-primary">{t.nav.features}</span>
           </motion.div>
 
-          <h2 className="mb-4 font-sans text-3xl font-black sm:text-4xl lg:text-5xl text-balance uppercase tracking-tighter">
+          <h2 className="mb-4 text-3xl font-black sm:text-4xl lg:text-5xl text-balance uppercase tracking-tighter">
             {t.landing.featuresSection.title}
           </h2>
 

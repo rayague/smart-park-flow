@@ -28,68 +28,90 @@ interface PlatformStat {
 
 export function PlatformStats() {
     const { t } = useTranslation()
-    const { reservations, fetchReservations } = useReservationStore()
-    const { parkings, fetchParkings } = useParkingStore()
-    const [userCount, setUserCount] = React.useState(0)
-    const [managerCount, setManagerCount] = React.useState(0)
+    const [stats, setStats] = React.useState<PlatformStat[]>([])
     const [loading, setLoading] = React.useState(true)
 
     React.useEffect(() => {
-        fetchReservations()
-        fetchParkings()
+        async function fetchAllStats() {
+            setLoading(true)
+            const now = new Date()
+            const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+            const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
 
-        async function fetchCounts() {
-            const [usersRes, managersRes] = await Promise.all([
-                supabase.from('profiles').select('id', { count: 'exact', head: true }),
-                supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'MANAGER')
-            ])
+            try {
+                const [
+                    totalUsers, prevUsers,
+                    totalManagers, prevManagers,
+                    totalParkings, prevParkings,
+                    paidRes, prevPaidRes
+                ] = await Promise.all([
+                    // Users
+                    supabase.from('profiles').select('id', { count: 'exact', head: true }),
+                    supabase.from('profiles').select('id', { count: 'exact', head: true }).lt('created_at', thirtyDaysAgo.toISOString()),
+                    // Managers
+                    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'MANAGER'),
+                    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'MANAGER').lt('created_at', thirtyDaysAgo.toISOString()),
+                    // Parkings
+                    supabase.from('parkings').select('id', { count: 'exact', head: true }),
+                    supabase.from('parkings').select('id', { count: 'exact', head: true }).lt('created_at', thirtyDaysAgo.toISOString()),
+                    // Revenue (Paid Reservations)
+                    supabase.from('reservations').select('total_price').gte('created_at', thirtyDaysAgo.toISOString()).in('status', ['PAID', 'COMPLETED']),
+                    supabase.from('reservations').select('total_price').gte('created_at', sixtyDaysAgo.toISOString()).lt('created_at', thirtyDaysAgo.toISOString()).in('status', ['PAID', 'COMPLETED']),
+                ])
 
-            if (usersRes.count !== null) setUserCount(usersRes.count)
-            if (managersRes.count !== null) setManagerCount(managersRes.count)
-            setLoading(false)
+                const calculateChange = (current: number, previous: number) => {
+                    if (previous === 0) return current > 0 ? 100 : 0
+                    return Math.round(((current - previous) / previous) * 100 * 10) / 10
+                }
+
+                const currentMonthRevenue = (paidRes.data || []).reduce((acc: number, r: any) => acc + (r.total_price || 0), 0)
+                const prevMonthRevenue = (prevPaidRes.data || []).reduce((acc: number, r: any) => acc + (r.total_price || 0), 0)
+
+                const newStats: PlatformStat[] = [
+                    {
+                        title: t.adminDashboard.stats.totalUsers,
+                        value: (totalUsers.count || 0).toLocaleString(),
+                        subtitle: "Total registered",
+                        icon: Users,
+                        gradient: "from-blue-500 to-cyan-400",
+                        change: calculateChange(totalUsers.count || 0, prevUsers.count || 0),
+                    },
+                    {
+                        title: t.adminDashboard.stats.totalManagers,
+                        value: (totalManagers.count || 0).toLocaleString(),
+                        subtitle: "Property owners",
+                        icon: Building2,
+                        gradient: "from-purple-500 to-pink-400",
+                        change: calculateChange(totalManagers.count || 0, prevManagers.count || 0),
+                    },
+                    {
+                        title: t.adminDashboard.stats.totalParkings,
+                        value: (totalParkings.count || 0).toLocaleString(),
+                        subtitle: "Live locations",
+                        icon: ParkingCircle,
+                        gradient: "from-orange-500 to-red-400",
+                        change: calculateChange(totalParkings.count || 0, prevParkings.count || 0),
+                    },
+                    {
+                        title: t.adminDashboard.stats.platformRevenue,
+                        value: `€${currentMonthRevenue.toLocaleString()}`,
+                        subtitle: "Last 30 days",
+                        icon: DollarSign,
+                        gradient: "from-green-500 to-emerald-400",
+                        change: calculateChange(currentMonthRevenue, prevMonthRevenue),
+                    },
+                ]
+
+                setStats(newStats)
+            } catch (err) {
+                console.error('Failed to fetch platform stats:', err)
+            } finally {
+                setLoading(false)
+            }
         }
 
-        fetchCounts()
-    }, [fetchReservations, fetchParkings])
-
-    const totalRevenue = React.useMemo(() =>
-        parkings.reduce((acc, p) => acc + ((p.totalSpots - p.availableSpots) * p.pricePerHour), 0),
-        [parkings])
-
-    const stats: PlatformStat[] = [
-        {
-            title: t.adminDashboard.stats.totalUsers,
-            value: loading ? '-' : userCount.toLocaleString(),
-            subtitle: t.adminDashboard.stats.activeToday,
-            icon: Users,
-            gradient: "from-blue-500 to-cyan-400",
-            change: 8.5,
-        },
-        {
-            title: t.adminDashboard.stats.totalManagers,
-            value: loading ? '-' : managerCount.toLocaleString(),
-            subtitle: t.adminDashboard.stats.newThisWeek,
-            icon: Building2,
-            gradient: "from-purple-500 to-pink-400",
-            change: 12.3,
-        },
-        {
-            title: t.adminDashboard.stats.totalParkings,
-            value: loading ? '-' : parkings.length.toLocaleString(),
-            subtitle: "Verified locations",
-            icon: ParkingCircle,
-            gradient: "from-orange-500 to-red-400",
-            change: 5.2,
-        },
-        {
-            title: t.adminDashboard.stats.platformRevenue,
-            value: loading ? '-' : `€${totalRevenue.toLocaleString()}`,
-            subtitle: "This month",
-            icon: DollarSign,
-            gradient: "from-green-500 to-emerald-400",
-            change: 15.8,
-        },
-    ]
+        fetchAllStats()
+    }, [t])
 
     return (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

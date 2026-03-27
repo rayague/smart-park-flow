@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { useTranslation } from "@/lib/i18n"
 import { useAuthStore, useReservationStore } from "@/lib/store"
+import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/components/ui/use-toast"
 import Link from "next/link"
@@ -43,19 +44,15 @@ interface Vehicle {
     is_default: boolean
 }
 
-function VehicleSection() {
+function VehicleSection({ 
+    onAddVehicle 
+}: { 
+    onAddVehicle: () => void 
+}) {
     const { user } = useAuthStore()
     const { toast } = useToast()
     const [vehicles, setVehicles] = React.useState<Vehicle[]>([])
     const [loading, setLoading] = React.useState(true)
-    const [dialogOpen, setDialogOpen] = React.useState(false)
-    const [saving, setSaving] = React.useState(false)
-
-    const [plate, setPlate] = React.useState("")
-    const [brand, setBrand] = React.useState("")
-    const [model, setModel] = React.useState("")
-    const [color, setColor] = React.useState("")
-    const [isElectric, setIsElectric] = React.useState(false)
 
     React.useEffect(() => {
         if (!user) return
@@ -70,46 +67,6 @@ function VehicleSection() {
         }
         load()
     }, [user])
-
-    const resetForm = () => {
-        setPlate("")
-        setBrand("")
-        setModel("")
-        setColor("")
-        setIsElectric(false)
-    }
-
-    const handleAdd = async () => {
-        if (!user || !plate.trim()) return
-        setSaving(true)
-        try {
-            const { data, error } = await supabase
-                .from("vehicles")
-                .insert({
-                    user_id: user.id,
-                    plate: plate.toUpperCase().trim(),
-                    brand: brand.trim() || null,
-                    model: model.trim() || null,
-                    color: color.trim() || null,
-                    is_electric: isElectric,
-                    is_default: vehicles.length === 0,
-                })
-                .select()
-
-            if (error) throw error
-
-            if (data?.[0]) {
-                setVehicles(prev => [{ ...data[0], is_electric: !!data[0].is_electric, is_default: !!data[0].is_default }, ...prev])
-            }
-            toast({ title: "Vehicle added!", description: `${plate.toUpperCase()} has been registered.` })
-            resetForm()
-            setDialogOpen(false)
-        } catch (err: any) {
-            toast({ title: "Error", description: err.message, variant: "destructive" })
-        } finally {
-            setSaving(false)
-        }
-    }
 
     const handleDelete = async (id: string) => {
         await supabase.from("vehicles").delete().eq("id", id)
@@ -127,99 +84,73 @@ function VehicleSection() {
 
     if (vehicles.length === 0) {
         return (
-            <>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="rounded-2xl glass p-6 flex flex-col justify-center items-center text-center space-y-4"
-                >
-                    <div className="h-20 w-20 rounded-full bg-accent-box flex items-center justify-center mb-2">
-                        <Car className="h-10 w-10 text-accent" />
-                    </div>
-                    <h3 className="font-sans text-xl font-bold">Add Your Vehicle</h3>
-                    <p className="text-muted-foreground max-w-xs">
-                        Register your vehicle to enable automatic license plate recognition and faster entry.
-                    </p>
-                    <Button className="mt-4 gap-2" onClick={() => setDialogOpen(true)}>
-                        <Plus className="h-4 w-4" />
-                        Register Vehicle
-                    </Button>
-                </motion.div>
-                <VehicleDialog
-                    open={dialogOpen}
-                    onOpenChange={setDialogOpen}
-                    plate={plate} setPlate={setPlate}
-                    brand={brand} setBrand={setBrand}
-                    model={model} setModel={setModel}
-                    color={color} setColor={setColor}
-                    isElectric={isElectric} setIsElectric={setIsElectric}
-                    saving={saving}
-                    onSave={handleAdd}
-                />
-            </>
-        )
-    }
-
-    return (
-        <>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="rounded-2xl glass p-6 space-y-4"
+                className="rounded-2xl glass p-6 flex flex-col justify-center items-center text-center space-y-4"
             >
-                <div className="flex items-center justify-between">
-                    <h3 className="font-sans text-lg font-semibold">My Vehicles</h3>
-                    <Button size="sm" variant="outline" className="gap-1" onClick={() => { resetForm(); setDialogOpen(true) }}>
-                        <Plus className="h-3 w-3" />
-                        Add
-                    </Button>
+                <div className="h-20 w-20 rounded-full bg-accent-box flex items-center justify-center mb-2">
+                    <Car className="h-10 w-10 text-accent" />
                 </div>
-
-                <div className="space-y-3">
-                    {vehicles.map((v) => (
-                        <div key={v.id} className="flex items-center justify-between p-3 rounded-xl bg-secondary/50 group">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                                    {v.is_electric ? <Zap className="h-5 w-5" /> : <Car className="h-5 w-5" />}
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-mono font-bold tracking-wider text-sm">{v.plate}</span>
-                                        {v.is_default && (
-                                            <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">Default</span>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">
-                                        {[v.brand, v.model, v.color].filter(Boolean).join(" · ") || "No details"}
-                                    </p>
-                                </div>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                                onClick={() => handleDelete(v.id)}
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ))}
-                </div>
+                <h3 className="font-sans text-xl font-bold">Add Your Vehicle</h3>
+                <p className="text-muted-foreground max-w-xs">
+                    Register your vehicle to enable automatic license plate recognition and faster entry.
+                </p>
+                <Button className="mt-4 gap-2" onClick={onAddVehicle}>
+                    <Plus className="h-4 w-4" />
+                    Register Vehicle
+                </Button>
             </motion.div>
-            <VehicleDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                plate={plate} setPlate={setPlate}
-                brand={brand} setBrand={setBrand}
-                model={model} setModel={setModel}
-                color={color} setColor={setColor}
-                isElectric={isElectric} setIsElectric={setIsElectric}
-                saving={saving}
-                onSave={handleAdd}
-            />
-        </>
+        )
+    }
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="rounded-2xl glass p-6 space-y-4"
+        >
+            <div className="flex items-center justify-between">
+                <h3 className="font-sans text-lg font-semibold">My Vehicles</h3>
+                <Button size="sm" variant="outline" className="gap-1" onClick={onAddVehicle}>
+                    <Plus className="h-3 w-3" />
+                    Add
+                </Button>
+            </div>
+
+            <div className="space-y-3">
+                {vehicles.map((v) => (
+                    <div key={v.id} className="flex items-center justify-between p-3 rounded-xl bg-secondary/50 group">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                {v.is_electric ? <Zap className="h-5 w-5" /> : <Car className="h-5 w-5" />}
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-mono font-bold tracking-wider text-sm">{v.plate}</span>
+                                    {v.is_default && (
+                                        <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">Default</span>
+                                    )}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    {[v.brand, v.model, v.color].filter(Boolean).join(" · ") || "No details"}
+                                </p>
+                            </div>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDelete(v.id)}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ))}
+            </div>
+        </motion.div>
     )
 }
 
@@ -323,7 +254,54 @@ function VehicleDialog({
 export default function ClientDashboard() {
     const { user } = useAuthStore()
     const { t } = useTranslation()
+    const router = useRouter()
+    const { toast } = useToast()
     const { reservations, fetchReservations } = useReservationStore()
+
+    const [dialogOpen, setDialogOpen] = React.useState(false)
+    const [saving, setSaving] = React.useState(false)
+    const [plate, setPlate] = React.useState("")
+    const [brand, setBrand] = React.useState("")
+    const [model, setModel] = React.useState("")
+    const [color, setColor] = React.useState("")
+    const [isElectric, setIsElectric] = React.useState(false)
+
+    const resetForm = () => {
+        setPlate("")
+        setBrand("")
+        setModel("")
+        setColor("")
+        setIsElectric(false)
+    }
+
+    const handleAddVehicle = async () => {
+        if (!user || !plate.trim()) return
+        setSaving(true)
+        try {
+            const { error } = await supabase
+                .from("vehicles")
+                .insert({
+                    user_id: user.id,
+                    plate: plate.toUpperCase().trim(),
+                    brand: brand.trim() || null,
+                    model: model.trim() || null,
+                    color: color.trim() || null,
+                    is_electric: isElectric,
+                    is_default: false,
+                })
+
+            if (error) throw error
+            toast({ title: "Vehicle added!", description: `${plate.toUpperCase()} has been registered.` })
+            resetForm()
+            setDialogOpen(false)
+            // Trigger refresh
+            window.location.reload()
+        } catch (err: any) {
+            toast({ title: "Error", description: err.message, variant: "destructive" })
+        } finally {
+            setSaving(false)
+        }
+    }
 
     React.useEffect(() => {
         fetchReservations()
@@ -399,6 +377,8 @@ export default function ClientDashboard() {
 
             {/* Recent Activity */}
             <div className="grid gap-6 lg:grid-cols-2">
+                <VehicleSection onAddVehicle={() => setDialogOpen(true)} />
+                
                 {/* Upcoming Reservations */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -450,7 +430,6 @@ export default function ClientDashboard() {
                     </div>
                 </motion.div>
 
-<<<<<<< HEAD
                 {/* Quick Actions or Promo */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -465,15 +444,23 @@ export default function ClientDashboard() {
                     <p className="text-muted-foreground max-w-xs">
                         {t.userDashboard.vehicle?.description || "Register your vehicle to enable automatic license plate recognition and faster entry."}
                     </p>
-                    <Button className="mt-4">
+                    <Button className="mt-4" onClick={() => setDialogOpen(true)}>
                         {t.userDashboard.vehicle?.button || "Register Vehicle"}
                     </Button>
                 </motion.div>
-=======
-                {/* Vehicle Section */}
-                <VehicleSection />
->>>>>>> origin/salma-elodmi
             </div>
+
+            <VehicleDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                plate={plate} setPlate={setPlate}
+                brand={brand} setBrand={setBrand}
+                model={model} setModel={setModel}
+                color={color} setColor={setColor}
+                isElectric={isElectric} setIsElectric={setIsElectric}
+                saving={saving}
+                onSave={handleAddVehicle}
+            />
         </div>
     )
 }

@@ -23,7 +23,7 @@ export default function AdminLayout({
             <AuthLoadingOverlay isLoading={isLoading} message={t.common.loading} />
             <AdminSidebar />
             <div className={cn(
-                "flex-1 flex flex-col transition-all duration-300",
+                "flex-1 flex flex-col transition-all duration-300 pt-16 md:pt-0",
                 isSidebarOpen ? "lg:pl-64" : "lg:pl-[72px]"
             )}>
                 <AdminHeader />

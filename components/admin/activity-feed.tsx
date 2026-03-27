@@ -60,12 +60,12 @@ export function ActivityFeed() {
                 console.error('Failed to fetch activities:', error)
                 setActivities([])
             } else {
-                const mapped: Activity[] = (data || []).map((n: any) => ({
+                const mapped: Activity[] = (data || []).map((n) => ({
                     id: n.id,
                     type: (n.type || 'info') as Activity['type'],
                     message: n.title || 'Notification',
                     time: n.created_at 
-                        ? formatDistanceToNow(new Date(n.created_at), { addSuffix: true })
+                        ? formatDistanceToNow(new Date(n.created_at as string), { addSuffix: true })
                         : 'Just now',
                     user: n.message || '',
                     icon: iconMap[n.type || 'info'] || Info,

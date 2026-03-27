@@ -105,7 +105,7 @@ export function HeroSection() {
             transition={{ duration: 0.8 }}
             className="text-center space-y-2"
           >
-            <h1 className="font-sans text-5xl font-black leading-tight tracking-tight sm:text-7xl lg:text-8xl flex flex-col items-center">
+            <h1 className="text-5xl font-black leading-tight tracking-tight sm:text-7xl lg:text-8xl flex flex-col items-center">
               <span>{t.landing.heroTitle}</span>
               <div className="h-20 sm:h-28 flex items-center justify-center">
                 <TypingText
@@ -149,6 +149,7 @@ export function HeroSection() {
               <Button
                 size="lg"
                 className="h-14 rounded-2xl px-8 bg-gradient-to-r from-primary to-accent glow-primary-sm hidden sm:flex"
+                onClick={() => router.push('/dashboard/map')}
               >
                 Find Parking
               </Button>

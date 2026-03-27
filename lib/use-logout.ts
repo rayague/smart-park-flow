@@ -17,25 +17,24 @@ export function useLogout() {
       console.error("Supabase signOut error:", error)
     }
 
-    // 2. Clear localStorage items
+    // 2. Reset auth store (this handles local state and smartpark_token)
+    logout()
+
+    // 3. Force clear of potential lingering auth storage
     if (typeof window !== "undefined") {
       localStorage.removeItem("smartpark_token")
       localStorage.removeItem("auth-storage")
-      try {
-        const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-        if (url) {
-          localStorage.removeItem("sb-" + new URL(url).hostname + "-auth-token")
+      
+      // Clear all possible Supabase tokens
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          localStorage.removeItem(key)
         }
-      } catch {
-        // env not set — ignore
-      }
+      })
     }
 
-    // 3. Reset auth store
-    logout()
-
-    // 4. Redirect to home
-    window.location.href = "/"
+    // 4. Redirect to home with a hard reload to clear any memory state
+    window.location.replace("/")
   }, [logout])
 
   return handleLogout

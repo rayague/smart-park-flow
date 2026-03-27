@@ -73,8 +73,8 @@ export function Header() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent transition-transform group-hover:scale-110">
             <Car className="h-6 w-6 text-white" />
           </div>
-          <span className="font-sans text-xl font-bold">
-            Smart<span className="text-primary">Park</span>
+          <span className="text-xl font-bold">
+            Smart<span className="text-gradient-primary">Park</span>
           </span>
         </Link>
 

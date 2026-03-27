@@ -63,7 +63,8 @@ export default function AdminDashboard() {
 
         async function fetchDashboardData() {
             try {
-                const [profilesRes, usersCountRes, managersCountRes, adminsCountRes] = await Promise.all([
+                const [baselineRes, profilesRes, usersCountRes, managersCountRes, adminsCountRes] = await Promise.all([
+                    supabase.from("profiles").select("id", { count: "exact", head: true }).lt("created_at", start.toISOString()),
                     supabase
                         .from("profiles")
                         .select("created_at")
@@ -82,13 +83,14 @@ export default function AdminDashboard() {
                         buckets.set(key, 0)
                     }
 
-                    for (const row of profilesRes.data || []) {
-                        const d = new Date((row as any).created_at)
+                    const profileRows = profilesRes.data as Array<{ created_at: string }>
+                    for (const row of profileRows) {
+                        const d = new Date(row.created_at)
                         const key = d.toLocaleString("en-US", { month: "short" })
                         if (buckets.has(key)) buckets.set(key, (buckets.get(key) || 0) + 1)
                     }
 
-                    let cumulative = 0
+                    let cumulative = baselineRes.count || 0
                     const growth: GrowthPoint[] = Array.from(buckets.entries()).map(([month, count]) => {
                         cumulative += count
                         return { month, users: cumulative }
@@ -97,11 +99,11 @@ export default function AdminDashboard() {
                 }
 
                 setUserDistribution([
-                    { name: "Users", value: usersCountRes.count ?? 0, color: "#2563eb" },
-                    { name: "Managers", value: managersCountRes.count ?? 0, color: "#8b5cf6" },
-                    { name: "Admins", value: adminsCountRes.count ?? 0, color: "#ef4444" },
+                    { name: "Users", value: (usersCountRes.count as number) ?? 0, color: "#2563eb" },
+                    { name: "Managers", value: (managersCountRes.count as number) ?? 0, color: "#8b5cf6" },
+                    { name: "Admins", value: (adminsCountRes.count as number) ?? 0, color: "#ef4444" },
                 ])
-            } catch (e) {
+            } catch (e: unknown) {
                 console.error("Failed to load admin dashboard stats:", e)
             }
         }

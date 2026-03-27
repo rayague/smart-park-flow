@@ -31,6 +31,12 @@ export const en = {
     perHour: "/hour",
     spots: "spots",
     available: "available",
+    enabled: "Enabled",
+    disabled: "Disabled",
+    saving: "Saving...",
+    saved: "Saved!",
+    requiredFields: "All fields marked with * are required",
+    bookNow: "Book Now",
   },
 
   // Navigation
@@ -286,6 +292,14 @@ export const en = {
       favorites: "Favorites",
       settings: "Settings",
     },
+
+    favorites: {
+      subtitle: "Your saved parking spots",
+      empty: "No favorites yet",
+      addTitle: "Add New Favorite",
+      addSubtitle: "Discover and save your preferred parking locations",
+      browseButton: "Browse Parkings",
+    },
   },
 
   // Dashboard - Manager
@@ -315,6 +329,58 @@ export const en = {
       spots: "Manage Spots",
       analytics: "Analytics",
       settings: "Settings",
+    },
+
+    addParking: {
+      title: "Add Parking",
+      requiredFields: "Fields marked with * are required",
+      nameLabel: "Parking Name *",
+      namePlaceholder: "e.g., Central Parking",
+      addressLabel: "Address *",
+      addressPlaceholder: "12 Main Street",
+      cityLabel: "City *",
+      cityPlaceholder: "New York",
+      spotsLabel: "Number of Spots *",
+      spotsPlaceholder: "50",
+      priceLabel: "Price / Hour (€) *",
+      pricePlaceholder: "2.50",
+      openLabel: "Opening",
+      closeLabel: "Closing",
+      evCharging: "EV Charging Stations",
+      successMessage: "Parking added successfully!",
+    },
+
+    editParking: {
+      title: "Edit Parking",
+      nameLabel: "Parking Name *",
+      namePlaceholder: "e.g., Central Parking",
+      addressLabel: "Address *",
+      addressPlaceholder: "12 Main Street",
+      cityLabel: "City *",
+      cityPlaceholder: "New York",
+      spotsLabel: "Number of Spots *",
+      spotsPlaceholder: "50",
+      priceLabel: "Price / Hour (€) *",
+      pricePlaceholder: "2.50",
+      openLabel: "Opening",
+      closeLabel: "Closing",
+      evCharging: "EV Charging Stations",
+      successMessage: "Parking updated successfully!",
+    },
+
+    spotEdit: {
+      title: "Edit Spot {spotName}",
+      statusLabel: "Spot Status",
+      selectStatus: "Select a status",
+      available: "Available",
+      occupied: "Occupied",
+      maintenance: "Maintenance",
+      typeLabel: "Spot Type",
+      selectType: "Select a type",
+      standard: "Standard",
+      evCharging: "EV Charging Station",
+      statusWarning: "Status changes will affect real-time availability for users.",
+      updateError: "Error updating spot.",
     },
   },
 
@@ -348,12 +414,39 @@ export const en = {
       settings: "Settings",
     },
 
+    parkings: {
+      facility: "Facility",
+      manager: "Manager",
+      location: "Location",
+      spots: "Spots",
+      revenue: "Revenue",
+      status: "Status",
+      actions: "Actions",
+      advancedFilters: "Advanced Filters",
+      managedBy: "Managed by",
+    },
+
     actions: {
       addUser: "Add User",
       exportData: "Export Data",
       viewDetails: "View Details",
       suspend: "Suspend",
       activate: "Activate",
+      suspendConfirmTitle: "Confirm Suspension",
+      suspendConfirmDescription: "Suspending this parking will prevent new bookings. The manager will be notified of this action.",
+      parkingSuspendedTitle: "Parking Suspended",
+      parkingSuspendedMessage: "Your parking '{name}' has been suspended by the administration. Please contact support for more details.",
+      confirmDeleteUser: "Are you sure you want to delete this user? This action cannot be undone.",
+      confirmDeleteParking: "Are you sure you want to delete this parking? This action cannot be undone.",
+      noUsersFound: "No users found",
+      noParkingsFound: "No parkings found",
+    },
+
+    managerStats: {
+      total: "Total Managers",
+      pending: "Pending Verification",
+      active: "Active Facilities",
+      revoked: "Revoked Licenses",
     },
   },
 
@@ -414,6 +507,11 @@ export const en = {
       bookingId: "Booking ID",
       viewReservation: "View Reservation",
       backToHome: "Back to Home",
+    },
+
+    payment: {
+      title: "Payment",
+      enterDetails: "Enter your payment details to complete the booking",
     },
   },
 

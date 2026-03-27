@@ -18,6 +18,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { AlertCircle, CheckCircle2, Zap, Car, AlertTriangle } from "lucide-react"
+import { useTranslation } from "@/lib/i18n"
 
 interface Spot {
     id: string
@@ -34,6 +35,7 @@ interface SpotEditModalProps {
 }
 
 export function SpotEditModal({ spot, open, onOpenChange, onSuccess }: SpotEditModalProps) {
+    const { t } = useTranslation()
     const [status, setStatus] = React.useState<string>("")
     const [type, setType] = React.useState<string>("")
     const [loading, setLoading] = React.useState(false)
@@ -69,7 +71,7 @@ export function SpotEditModal({ spot, open, onOpenChange, onSuccess }: SpotEditM
             onOpenChange(false)
         } catch (error) {
             console.error("Error updating spot:", error)
-            alert("Erreur lors de la mise à jour de la place.")
+            alert(t.managerDashboard?.spotEdit?.updateError || "Erreur lors de la mise à jour de la place.")
         } finally {
             setLoading(false)
         }
@@ -82,34 +84,34 @@ export function SpotEditModal({ spot, open, onOpenChange, onSuccess }: SpotEditM
             <DialogContent className="sm:max-w-[425px] glass border-primary/20">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-2xl font-serif">
-                        Modifier la Place {spot.name}
+                        {t.managerDashboard?.spotEdit?.title?.replace('{spotName}', spot.name) || `Modifier la Place ${spot.name}`}
                     </DialogTitle>
                 </DialogHeader>
 
                 <div className="grid gap-6 py-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="status">Statut de la place</Label>
+                        <Label htmlFor="status">{t.managerDashboard?.spotEdit?.statusLabel || "Statut de la place"}</Label>
                         <Select value={status} onValueChange={setStatus}>
                             <SelectTrigger id="status" className="glass">
-                                <SelectValue placeholder="Choisir un statut" />
+                                <SelectValue placeholder={t.managerDashboard?.spotEdit?.selectStatus || "Choisir un statut"} />
                             </SelectTrigger>
                             <SelectContent className="glass">
                                 <SelectItem value="AVAILABLE">
                                     <div className="flex items-center gap-2">
                                         <div className="h-2 w-2 rounded-full bg-primary" />
-                                        <span>Disponible</span>
+                                        <span>{t.managerDashboard?.spotEdit?.available || "Disponible"}</span>
                                     </div>
                                 </SelectItem>
                                 <SelectItem value="OCCUPIED">
                                     <div className="flex items-center gap-2">
                                         <div className="h-2 w-2 rounded-full bg-secondary" />
-                                        <span>Occupée</span>
+                                        <span>{t.managerDashboard?.spotEdit?.occupied || "Occupée"}</span>
                                     </div>
                                 </SelectItem>
                                 <SelectItem value="MAINTENANCE">
                                     <div className="flex items-center gap-2">
                                         <div className="h-2 w-2 rounded-full bg-yellow-500" />
-                                        <span>Maintenance</span>
+                                        <span>{t.managerDashboard?.spotEdit?.maintenance || "Maintenance"}</span>
                                     </div>
                                 </SelectItem>
                             </SelectContent>
@@ -117,14 +119,14 @@ export function SpotEditModal({ spot, open, onOpenChange, onSuccess }: SpotEditM
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="type">Type de place</Label>
+                        <Label htmlFor="type">{t.managerDashboard?.spotEdit?.typeLabel || "Type de place"}</Label>
                         <Select value={type} onValueChange={setType}>
                             <SelectTrigger id="type" className="glass">
-                                <SelectValue placeholder="Choisir un type" />
+                                <SelectValue placeholder={t.managerDashboard?.spotEdit?.selectType || "Choisir un type"} />
                             </SelectTrigger>
                             <SelectContent className="glass">
-                                <SelectItem value="REGULAR">Standard</SelectItem>
-                                <SelectItem value="EV">Borne Électrique (EV)</SelectItem>
+                                <SelectItem value="REGULAR">{t.managerDashboard?.spotEdit?.standard || "Standard"}</SelectItem>
+                                <SelectItem value="EV">{t.managerDashboard?.spotEdit?.evCharging || "Borne Électrique (EV)"}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -133,7 +135,7 @@ export function SpotEditModal({ spot, open, onOpenChange, onSuccess }: SpotEditM
                         <p className="flex items-start gap-2">
                             <AlertCircle className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
                             <span>
-                                La modification du statut affectera la disponibilité en temps réel pour les utilisateurs.
+                                {t.managerDashboard?.spotEdit?.statusWarning || "La modification du statut affectera la disponibilité en temps réel pour les utilisateurs."}
                             </span>
                         </p>
                     </div>
@@ -141,10 +143,10 @@ export function SpotEditModal({ spot, open, onOpenChange, onSuccess }: SpotEditM
 
                 <DialogFooter>
                     <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>
-                        Annuler
+                        {t.common.cancel || "Annuler"}
                     </Button>
                     <Button onClick={handleSave} disabled={loading} className="min-w-[100px]">
-                        {loading ? "Enregistrement..." : "Enregistrer"}
+                        {loading ? (t.common.saving || "Enregistrement...") : (t.common.save || "Enregistrer")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

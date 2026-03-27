@@ -6,6 +6,7 @@ import { X, Loader2, CheckCircle2, AlertCircle, ParkingCircle, Zap } from "lucid
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useParkingStore, NewParkingData } from "@/lib/store"
+import { useTranslation } from "@/lib/i18n"
 
 interface AddParkingModalProps {
     open: boolean
@@ -23,6 +24,7 @@ const defaultForm: NewParkingData = {
 }
 
 export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
+    const { t } = useTranslation()
     const { createParking } = useParkingStore()
     const [form, setForm] = React.useState<NewParkingData>(defaultForm)
     const [status, setStatus] = React.useState<"idle" | "loading" | "success" | "error">("idle")
@@ -40,7 +42,7 @@ export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!form.name.trim() || !form.address.trim() || !form.city.trim()) {
-            setErrorMsg("Veuillez remplir tous les champs obligatoires.")
+            setErrorMsg(t.common.requiredFields || "Veuillez remplir tous les champs obligatoires.")
             setStatus("error")
             return
         }
@@ -94,8 +96,8 @@ export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
                                     <ParkingCircle className="h-5 w-5 text-primary" />
                                 </div>
                                 <div>
-                                    <h2 className="font-serif text-lg font-bold">Ajouter un parking</h2>
-                                    <p className="text-xs text-muted-foreground">Les champs * sont obligatoires</p>
+                                    <h2 className="font-serif text-lg font-bold">{t.managerDashboard?.addParking?.title || "Ajouter un parking"}</h2>
+                                    <p className="text-xs text-muted-foreground">{t.managerDashboard?.addParking?.requiredFields || "Les champs * sont obligatoires"}</p>
                                 </div>
                             </div>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
@@ -107,9 +109,9 @@ export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
                         <form onSubmit={handleSubmit} className="space-y-4 px-6 py-5">
                             {/* Name */}
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium">Nom du parking *</label>
+                                <label className="text-sm font-medium">{t.managerDashboard?.addParking?.nameLabel || "Nom du parking *"}</label>
                                 <Input
-                                    placeholder="ex: Parking Central"
+                                    placeholder={t.managerDashboard?.addParking?.namePlaceholder || "ex: Parking Central"}
                                     value={form.name}
                                     onChange={(e) => set("name", e.target.value)}
                                     className="glass"
@@ -119,18 +121,18 @@ export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
                             {/* Address + City */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Adresse *</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.addParking?.addressLabel || "Adresse *"}</label>
                                     <Input
-                                        placeholder="12 rue Gambetta"
+                                        placeholder={t.managerDashboard?.addParking?.addressPlaceholder || "12 rue Gambetta"}
                                         value={form.address}
                                         onChange={(e) => set("address", e.target.value)}
                                         className="glass"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Ville *</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.addParking?.cityLabel || "Ville *"}</label>
                                     <Input
-                                        placeholder="Paris"
+                                        placeholder={t.managerDashboard?.addParking?.cityPlaceholder || "Paris"}
                                         value={form.city}
                                         onChange={(e) => set("city", e.target.value)}
                                         className="glass"
@@ -141,23 +143,23 @@ export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
                             {/* Spots + Price */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Nombre de places *</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.addParking?.spotsLabel || "Nombre de places *"}</label>
                                     <Input
                                         type="number"
                                         min={1}
-                                        placeholder="50"
+                                        placeholder={t.managerDashboard?.addParking?.spotsPlaceholder || "50"}
                                         value={form.totalSpots || ""}
                                         onChange={(e) => set("totalSpots", Number(e.target.value))}
                                         className="glass"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Prix / heure (€) *</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.addParking?.priceLabel || "Prix / heure (€) *"}</label>
                                     <Input
                                         type="number"
                                         min={0}
                                         step={0.5}
-                                        placeholder="2.50"
+                                        placeholder={t.managerDashboard?.addParking?.pricePlaceholder || "2.50"}
                                         value={form.pricePerHour || ""}
                                         onChange={(e) => set("pricePerHour", Number(e.target.value))}
                                         className="glass"
@@ -168,7 +170,7 @@ export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
                             {/* Opening hours */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Ouverture</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.addParking?.openLabel || "Ouverture"}</label>
                                     <Input
                                         type="time"
                                         value={form.openingHours.open}
@@ -177,7 +179,7 @@ export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Fermeture</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.addParking?.closeLabel || "Fermeture"}</label>
                                     <Input
                                         type="time"
                                         value={form.openingHours.close}
@@ -197,9 +199,9 @@ export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
                                     }`}
                             >
                                 <Zap className={`h-4 w-4 ${form.hasEvCharging ? "text-blue-400" : ""}`} />
-                                Bornes de recharge électrique
+                                {t.managerDashboard?.addParking?.evCharging || "Bornes de recharge électrique"}
                                 <span className={`ml-auto text-xs ${form.hasEvCharging ? "text-blue-400" : ""}`}>
-                                    {form.hasEvCharging ? "Activé" : "Désactivé"}
+                                    {form.hasEvCharging ? (t.common.enabled || "Activé") : (t.common.disabled || "Désactivé")}
                                 </span>
                             </button>
 
@@ -224,7 +226,7 @@ export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
                                         className="flex items-center gap-2 rounded-lg bg-green-500/10 px-3 py-2 text-sm text-green-500"
                                     >
                                         <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
-                                        Parking ajouté avec succès !
+                                        {t.managerDashboard?.addParking?.successMessage || "Parking ajouté avec succès !"}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -232,21 +234,21 @@ export function AddParkingModal({ open, onClose }: AddParkingModalProps) {
                             {/* Actions */}
                             <div className="flex justify-end gap-2 pt-1">
                                 <Button type="button" variant="outline" onClick={onClose} disabled={status === "loading"}>
-                                    Annuler
+                                    {t.common.cancel || "Annuler"}
                                 </Button>
                                 <Button type="submit" disabled={status === "loading" || status === "success"} className="gap-2 min-w-[110px]">
                                     {status === "loading" ? (
                                         <>
                                             <Loader2 className="h-4 w-4 animate-spin" />
-                                            Enregistrement…
+                                            {t.common.saving || "Enregistrement…"}
                                         </>
                                     ) : status === "success" ? (
                                         <>
                                             <CheckCircle2 className="h-4 w-4" />
-                                            Enregistré !
+                                            {t.common.saved || "Enregistré !"}
                                         </>
                                     ) : (
-                                        "Enregistrer"
+                                        t.common.save || "Enregistrer"
                                     )}
                                 </Button>
                             </div>

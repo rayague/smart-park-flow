@@ -27,6 +27,8 @@ interface StatsOverviewProps {
     activeBookings?: number;
     evSessions?: number;
     hourlyIntake?: number;
+    revChange?: number;
+    bookChange?: number;
 }
 
 export function StatsOverview({
@@ -34,7 +36,9 @@ export function StatsOverview({
     occupancy = 0,
     activeBookings = 0,
     evSessions = 0,
-    hourlyIntake = 0
+    hourlyIntake = 0,
+    revChange = 0,
+    bookChange = 0
 }: StatsOverviewProps) {
     const { t } = useTranslation()
 
@@ -42,7 +46,7 @@ export function StatsOverview({
         {
             title: "Total Earned",
             value: `€${revenue.toLocaleString()}`,
-            change: 12.5,
+            change: revChange,
             changeLabel: t.managerDashboard.stats.vsLastMonth,
             icon: DollarSign,
             gradient: "from-primary to-blue-400",
@@ -50,15 +54,15 @@ export function StatsOverview({
         {
             title: "Live Hourly Income",
             value: `€${hourlyIntake.toLocaleString()}/hr`,
-            change: 8.2,
-            changeLabel: "vs Last Hour",
+            change: 0,
+            changeLabel: "Real-time projection",
             icon: TrendingUp,
             gradient: "from-indigo-500 to-primary",
         },
         {
             title: t.managerDashboard.stats.occupancyRate,
             value: `${occupancy}%`,
-            change: 5.2,
+            change: bookChange,
             changeLabel: t.managerDashboard.stats.vsLastMonth,
             icon: Car,
             gradient: "from-accent to-emerald-400",
@@ -66,7 +70,7 @@ export function StatsOverview({
         {
             title: t.managerDashboard.stats.activeBookings,
             value: activeBookings.toString(),
-            change: -2.4,
+            change: bookChange > 0 ? bookChange : 0,
             changeLabel: t.managerDashboard.stats.vsLastMonth,
             icon: Users,
             gradient: "from-yellow-500 to-orange-400",

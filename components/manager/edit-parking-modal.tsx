@@ -6,6 +6,7 @@ import { X, Loader2, CheckCircle2, AlertCircle, Edit, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useParkingStore, Parking } from "@/lib/store"
+import { useTranslation } from "@/lib/i18n"
 
 interface EditParkingModalProps {
     parking: Parking | null
@@ -13,6 +14,7 @@ interface EditParkingModalProps {
 }
 
 export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
+    const { t } = useTranslation()
     const { updateParking } = useParkingStore()
     const [form, setForm] = React.useState({
         name: "",
@@ -51,7 +53,7 @@ export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!form.name.trim() || !form.address.trim() || !form.city.trim()) {
-            setErrorMsg("Veuillez remplir tous les champs obligatoires.")
+            setErrorMsg(t.common.requiredFields || "Veuillez remplir tous les champs obligatoires.")
             setStatus("error")
             return
         }
@@ -105,7 +107,7 @@ export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
                                     <Edit className="h-5 w-5 text-primary" />
                                 </div>
                                 <div>
-                                    <h2 className="font-serif text-lg font-bold">Modifier le parking</h2>
+                                    <h2 className="font-serif text-lg font-bold">{t.managerDashboard?.editParking?.title || "Modifier le parking"}</h2>
                                     <p className="text-xs text-muted-foreground">ID: {parking.id.slice(0, 8)}...</p>
                                 </div>
                             </div>
@@ -118,9 +120,9 @@ export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
                         <form onSubmit={handleSubmit} className="space-y-4 px-6 py-5">
                             {/* Name */}
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium">Nom du parking *</label>
+                                <label className="text-sm font-medium">{t.managerDashboard?.editParking?.nameLabel || "Nom du parking *"}</label>
                                 <Input
-                                    placeholder="ex: Parking Central"
+                                    placeholder={t.managerDashboard?.editParking?.namePlaceholder || "ex: Parking Central"}
                                     value={form.name}
                                     onChange={(e) => set("name", e.target.value)}
                                     className="glass"
@@ -130,18 +132,18 @@ export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
                             {/* Address + City */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Adresse *</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.editParking?.addressLabel || "Adresse *"}</label>
                                     <Input
-                                        placeholder="12 rue Gambetta"
+                                        placeholder={t.managerDashboard?.editParking?.addressPlaceholder || "12 rue Gambetta"}
                                         value={form.address}
                                         onChange={(e) => set("address", e.target.value)}
                                         className="glass"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Ville *</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.editParking?.cityLabel || "Ville *"}</label>
                                     <Input
-                                        placeholder="Paris"
+                                        placeholder={t.managerDashboard?.editParking?.cityPlaceholder || "Paris"}
                                         value={form.city}
                                         onChange={(e) => set("city", e.target.value)}
                                         className="glass"
@@ -152,23 +154,23 @@ export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
                             {/* Spots + Price */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Nombre de places *</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.editParking?.spotsLabel || "Nombre de places *"}</label>
                                     <Input
                                         type="number"
                                         min={1}
-                                        placeholder="50"
+                                        placeholder={t.managerDashboard?.editParking?.spotsPlaceholder || "50"}
                                         value={form.totalSpots || ""}
                                         onChange={(e) => set("totalSpots", Number(e.target.value))}
                                         className="glass"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Prix / heure (€) *</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.editParking?.priceLabel || "Prix / heure (€) *"}</label>
                                     <Input
                                         type="number"
                                         min={0}
                                         step={0.5}
-                                        placeholder="2.50"
+                                        placeholder={t.managerDashboard?.editParking?.pricePlaceholder || "2.50"}
                                         value={form.pricePerHour || ""}
                                         onChange={(e) => set("pricePerHour", Number(e.target.value))}
                                         className="glass"
@@ -179,7 +181,7 @@ export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
                             {/* Opening hours */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Ouverture</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.editParking?.openLabel || "Ouverture"}</label>
                                     <Input
                                         type="time"
                                         value={form.openingHours.open}
@@ -188,7 +190,7 @@ export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium">Fermeture</label>
+                                    <label className="text-sm font-medium">{t.managerDashboard?.editParking?.closeLabel || "Fermeture"}</label>
                                     <Input
                                         type="time"
                                         value={form.openingHours.close}
@@ -208,9 +210,9 @@ export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
                                     }`}
                             >
                                 <Zap className={`h-4 w-4 ${form.hasEvCharging ? "text-blue-400" : ""}`} />
-                                Bornes de recharge électrique
+                                {t.managerDashboard?.editParking?.evCharging || "Bornes de recharge électrique"}
                                 <span className={`ml-auto text-xs ${form.hasEvCharging ? "text-blue-400" : ""}`}>
-                                    {form.hasEvCharging ? "Activé" : "Désactivé"}
+                                    {form.hasEvCharging ? (t.common.enabled || "Activé") : (t.common.disabled || "Désactivé")}
                                 </span>
                             </button>
 
@@ -235,7 +237,7 @@ export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
                                         className="flex items-center gap-2 rounded-lg bg-green-500/10 px-3 py-2 text-sm text-green-500"
                                     >
                                         <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
-                                        Parking mis à jour avec succès !
+                                        {t.managerDashboard?.editParking?.successMessage || "Parking mis à jour avec succès !"}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -243,21 +245,21 @@ export function EditParkingModal({ parking, onClose }: EditParkingModalProps) {
                             {/* Actions */}
                             <div className="flex justify-end gap-2 pt-1">
                                 <Button type="button" variant="outline" onClick={onClose} disabled={status === "loading"}>
-                                    Annuler
+                                    {t.common.cancel || "Annuler"}
                                 </Button>
                                 <Button type="submit" disabled={status === "loading" || status === "success"} className="gap-2 min-w-[110px]">
                                     {status === "loading" ? (
                                         <>
                                             <Loader2 className="h-4 w-4 animate-spin" />
-                                            Mise à jour…
+                                            {t.common.saving || "Mise à jour…"}
                                         </>
                                     ) : status === "success" ? (
                                         <>
                                             <CheckCircle2 className="h-4 w-4" />
-                                            Mis à jour !
+                                            {t.common.saved || "Mis à jour !"}
                                         </>
                                     ) : (
-                                        "Mettre à jour"
+                                        t.common.save || "Mettre à jour"
                                     )}
                                 </Button>
                             </div>

@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { useTranslation } from "@/lib/i18n"
 import { Reservation } from "@/lib/store"
 import { getHours, getDay } from "date-fns"
+import { cn } from "@/lib/utils"
 
 interface OccupancyHeatmapProps {
     reservations: Reservation[]
@@ -157,4 +158,3 @@ function getColor(value: number): string {
     return "bg-emerald-500/20"
 }
 
-import { cn } from "@/lib/utils"

@@ -73,7 +73,7 @@ export function AdminHeader() {
                     </div>
                     <div className="hidden md:block">
                         <p className="text-sm font-medium">{user?.name || "Admin"}</p>
-                        <p className="text-xs text-red-500 font-medium">Super Admin</p>
+                        <p className="text-xs text-red-500 font-medium">{t.admin?.superAdmin || "Super Admin"}</p>
                     </div>
                 </div>
             </div>

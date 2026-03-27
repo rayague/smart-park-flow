@@ -230,12 +230,12 @@ export const useParkingStore = create<ParkingState>((set) => ({
           open: p.opening_time ?? '00:00',
           close: p.closing_time ?? '23:59',
         },
-        status: mapParkingStatus(p.status),
+        status: mapParkingStatus(p.status as string),
       }))
 
       set({ parkings: mapped })
-    } catch (error: any) {
-      if (error?.name === 'AbortError') return
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') return
       console.error('Failed to fetch parkings:', error);
     }
   },
@@ -395,7 +395,7 @@ export const useReservationStore = create<ReservationState>()(
             reservationRows = data || []
           }
 
-          const mapped: Reservation[] = reservationRows.map((r) => ({
+          const mapped: Reservation[] = (data || []).map((r: any) => ({
             id: r.id,
             parkingId: r.parking_id,
             parkingName: r.parking_name,
@@ -404,7 +404,7 @@ export const useReservationStore = create<ReservationState>()(
             userId: r.user_id,
             startTime: new Date(r.start_time),
             endTime: new Date(r.end_time),
-            status: mapReservationStatus(r.status),
+            status: mapReservationStatus(r.status as string),
             totalPrice: r.total_price,
             vehiclePlate: r.vehicle_plate || '',
             isEv: !!r.is_ev,
@@ -414,8 +414,8 @@ export const useReservationStore = create<ReservationState>()(
             set({ reservations: mapped })
           }
           // If Supabase returns empty, keep existing local reservations
-        } catch (error: any) {
-          if (error?.name === 'AbortError') return
+        } catch (error: unknown) {
+          if (error instanceof Error && error.name === 'AbortError') return
           console.error('Failed to fetch reservations:', error);
         }
       },
@@ -515,13 +515,13 @@ export const useUIStore = create<UIState>((set) => ({
         return
       }
 
-      const mapped: Notification[] = (data || []).map((n: any) => ({
+      const mapped: Notification[] = (data || []).map((n) => ({
         id: n.id,
         type: (n.type || 'info') as Notification['type'],
         title: n.title || 'Notification',
         message: n.message || '',
         read: !!(n.is_read ?? n.read),
-        createdAt: n.created_at ? new Date(n.created_at) : new Date(),
+        createdAt: n.created_at ? new Date(n.created_at as string) : new Date(),
       }))
 
       set({ notifications: mapped })

@@ -105,7 +105,7 @@ function PricingCard({
 
         {/* Header */}
         <div className="mb-6 text-center">
-          <h3 className="mb-1 font-sans text-xl font-black uppercase tracking-tight">{plan.name}</h3>
+          <h3 className="mb-1 text-xl font-black uppercase tracking-tight">{plan.name}</h3>
           <p className="text-sm text-muted-foreground">{plan.description}</p>
         </div>
 
@@ -203,7 +203,7 @@ export function PricingSection() {
             <span className="text-sm font-medium text-primary">{t.nav.pricing}</span>
           </motion.div>
           
-          <h2 className="mb-4 font-sans text-3xl font-black sm:text-4xl lg:text-5xl text-balance uppercase tracking-tighter">
+          <h2 className="mb-4 text-3xl font-black sm:text-4xl lg:text-5xl text-balance uppercase tracking-tighter">
             {t.landing.pricingSection.title}
           </h2>
           
@@ -226,7 +226,7 @@ export function PricingSection() {
           transition={{ delay: 0.6 }}
           className="mx-auto mt-12 max-w-2xl rounded-2xl glass p-8 text-center"
         >
-          <h3 className="mb-2 font-sans text-xl font-black uppercase tracking-tight">
+          <h3 className="mb-2 text-xl font-black uppercase tracking-tight">
             {t.landing.pricingSection.business.name} Extra?
           </h3>
           <p className="mb-4 text-muted-foreground">

@@ -33,6 +33,12 @@ export const fr: Translations = {
         perHour: "/heure",
         spots: "places",
         available: "disponible",
+        enabled: "Activé",
+        disabled: "Désactivé",
+        saving: "Enregistrement...",
+        saved: "Enregistré !",
+        requiredFields: "Tous les champs * sont obligatoires",
+        bookNow: "Réserver",
     },
 
     // Navigation
@@ -284,6 +290,14 @@ export const fr: Translations = {
             favorites: "Favoris",
             settings: "Paramètres",
         },
+
+        favorites: {
+            subtitle: "Vos parkings favoris",
+            empty: "Aucun favori pour l'instant",
+            addTitle: "Ajouter un Favori",
+            addSubtitle: "Découvrez et enregistrez vos parkings préférés",
+            browseButton: "Parcourir les Parkings",
+        },
     },
 
     // Dashboard - Manager
@@ -313,6 +327,58 @@ export const fr: Translations = {
             spots: "Gérer les Places",
             analytics: "Statistiques",
             settings: "Paramètres",
+        },
+
+        addParking: {
+            title: "Ajouter un parking",
+            requiredFields: "Les champs * sont obligatoires",
+            nameLabel: "Nom du parking *",
+            namePlaceholder: "ex: Parking Central",
+            addressLabel: "Adresse *",
+            addressPlaceholder: "12 rue Gambetta",
+            cityLabel: "Ville *",
+            cityPlaceholder: "Paris",
+            spotsLabel: "Nombre de places *",
+            spotsPlaceholder: "50",
+            priceLabel: "Prix / heure (€) *",
+            pricePlaceholder: "2.50",
+            openLabel: "Ouverture",
+            closeLabel: "Fermeture",
+            evCharging: "Bornes de recharge électrique",
+            successMessage: "Parking ajouté avec succès !",
+        },
+
+        editParking: {
+            title: "Modifier le parking",
+            nameLabel: "Nom du parking *",
+            namePlaceholder: "ex: Parking Central",
+            addressLabel: "Adresse *",
+            addressPlaceholder: "12 rue Gambetta",
+            cityLabel: "Ville *",
+            cityPlaceholder: "Paris",
+            spotsLabel: "Nombre de places *",
+            spotsPlaceholder: "50",
+            priceLabel: "Prix / heure (€) *",
+            pricePlaceholder: "2.50",
+            openLabel: "Ouverture",
+            closeLabel: "Fermeture",
+            evCharging: "Bornes de recharge électrique",
+            successMessage: "Parking mis à jour avec succès !",
+        },
+
+        spotEdit: {
+            title: "Modifier la Place {spotName}",
+            statusLabel: "Statut de la place",
+            selectStatus: "Choisir un statut",
+            available: "Disponible",
+            occupied: "Occupée",
+            maintenance: "Maintenance",
+            typeLabel: "Type de place",
+            selectType: "Choisir un type",
+            standard: "Standard",
+            evCharging: "Borne Électrique (EV)",
+            statusWarning: "La modification du statut affectera la disponibilité en temps réel pour les utilisateurs.",
+            updateError: "Erreur lors de la mise à jour de la place.",
         },
     },
 
@@ -346,12 +412,39 @@ export const fr: Translations = {
             settings: "Paramètres",
         },
 
+        parkings: {
+            facility: "Installation",
+            manager: "Gestionnaire",
+            location: "Localisation",
+            spots: "Places",
+            revenue: "Revenu",
+            status: "Statut",
+            actions: "Actions",
+            advancedFilters: "Filtres Avancés",
+            managedBy: "Géré par",
+        },
+
         actions: {
             addUser: "Ajouter Utilisateur",
             exportData: "Exporter les Données",
             viewDetails: "Voir les Détails",
             suspend: "Suspendre",
             activate: "Activer",
+            suspendConfirmTitle: "Confirmer la suspension",
+            suspendConfirmDescription: "La suspension de ce parking empêchera les nouvelles réservations. Le gestionnaire sera notifié de cette action.",
+            parkingSuspendedTitle: "Parking Suspendu",
+            parkingSuspendedMessage: "Votre parking '{name}' a été suspendu par l'administration. Veuillez contacter le support pour plus de détails.",
+            confirmDeleteUser: "Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.",
+            confirmDeleteParking: "Êtes-vous sûr de vouloir supprimer ce parking ? Cette action est irréversible.",
+            noUsersFound: "Aucun utilisateur trouvé",
+            noParkingsFound: "Aucun parking trouvé",
+        },
+
+        managerStats: {
+            total: "Total Gestionnaires",
+            pending: "Attente Vérification",
+            active: "Installations Actives",
+            revoked: "Licences Révoquées",
         },
     },
 
@@ -401,7 +494,7 @@ export const fr: Translations = {
             time: "Heure",
             duration: "Durée",
             subtotal: "Sous-total",
-            serviceFee: "Frais de Service",
+            serviceFee: "Frais de service",
             total: "Total",
             confirmBooking: "Confirmer la Réservation",
         },
@@ -412,6 +505,11 @@ export const fr: Translations = {
             bookingId: "ID de Réservation",
             viewReservation: "Voir la Réservation",
             backToHome: "Retour à l'Accueil",
+        },
+
+        payment: {
+            title: "Paiement",
+            enterDetails: "Entrez vos coordonnées de paiement pour finaliser la réservation",
         },
     },
 
