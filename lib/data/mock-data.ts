@@ -46,6 +46,7 @@ export const mockParkings: Parking[] = [
     ],
     amenities: ['EV Charging', '24/7 Security', 'Covered', 'Elevator', 'CCTV'],
     openingHours: { open: '00:00', close: '23:59' },
+    status: 'active',
   },
   {
     id: 'p2',
@@ -65,6 +66,7 @@ export const mockParkings: Parking[] = [
     ],
     amenities: ['EV Charging', '24/7 Access', 'Covered', 'Disabled Access'],
     openingHours: { open: '00:00', close: '23:59' },
+    status: 'active',
   },
   {
     id: 'p3',
@@ -84,6 +86,7 @@ export const mockParkings: Parking[] = [
     ],
     amenities: ['EV Charging', 'Valet', 'Car Wash', '24/7 Security', 'Reserved Spots'],
     openingHours: { open: '06:00', close: '23:00' },
+    status: 'active',
   },
   {
     id: 'p4',
@@ -103,6 +106,7 @@ export const mockParkings: Parking[] = [
     ],
     amenities: ['Covered', '24/7 Access', 'CCTV', 'Disabled Access'],
     openingHours: { open: '00:00', close: '23:59' },
+    status: 'active',
   },
   {
     id: 'p5',
@@ -122,6 +126,7 @@ export const mockParkings: Parking[] = [
     ],
     amenities: ['EV Charging', 'Valet', 'Premium Security', 'Covered', 'VIP Area'],
     openingHours: { open: '00:00', close: '23:59' },
+    status: 'active',
   },
   {
     id: 'p6',
@@ -141,6 +146,7 @@ export const mockParkings: Parking[] = [
     ],
     amenities: ['Outdoor', 'Budget Friendly', 'Quick Access'],
     openingHours: { open: '07:00', close: '22:00' },
+    status: 'active',
   },
 ]
 

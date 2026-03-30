@@ -59,7 +59,7 @@ export interface Reservation {
   isEv: boolean
 }
 
-function mapParkingStatus(status: string | null | undefined): Parking['status'] {
+export function mapParkingStatus(status: string | null | undefined): Parking['status'] {
   switch (status) {
     case 'MAINTENANCE':
       return 'maintenance'
@@ -69,7 +69,7 @@ function mapParkingStatus(status: string | null | undefined): Parking['status'] 
   }
 }
 
-function mapReservationStatus(
+export function mapReservationStatus(
   status: string | null | undefined
 ): Reservation['status'] {
   switch (status) {
